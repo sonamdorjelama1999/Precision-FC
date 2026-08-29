@@ -16,8 +16,7 @@ export const CLUB: ClubInfo = {
   rival: "Yangrima FC",
   blurb:
     "Precision FC is a futsal side out of Kathmandu, playing its home games at Rumble Futsal. " +
-    "The club keeps a full record of every fixture it plays — goals, timings and scorers — " +
-    "so the story of a season is in the numbers, not just the memory of it.",
+    "The club plays one way: forward.",
 };
 
 export const STORY: StoryBlock[] = [
@@ -31,23 +30,17 @@ export const STORY: StoryBlock[] = [
   {
     heading: "El Clasico",
     body:
-      "The fixture the season is measured by is against Ama Yangri FC — formerly Yangrima FC — a side " +
-      "the club has met repeatedly at Rumble. It is the only fixture on the calendar that gets its own name.",
+      "The fixture the season is measured by is against Yangrima FC, a side the club has met " +
+      "repeatedly at Rumble. It is the only fixture on the calendar that gets its own name.",
   },
   {
-    heading: "Keeping the record",
+    heading: "How we play",
     body:
-      "Every match Precision FC plays is logged: the scoreline, the goal times, who scored and who set it up. " +
-      "The tables on this site are generated from that log, so the numbers on the squad page and the " +
-      "results page can never drift apart.",
+      "Precision FC does not set up to defend. The plan is to keep the ball going forward and to " +
+      "outscore whatever the other side manages — the game gets settled at the top of the pitch, " +
+      "not the bottom of it.",
   },
 ];
-
-/**
- * Match dates and scores are still placeholders carried over from the static
- * site. Flip this to false once real results are in the database.
- */
-export const DRAFT_DATA = true;
 
 /**
  * The feature panels under the hero on the home page.
@@ -74,8 +67,7 @@ export const HOME_FEATURES: HomeFeature[] = [
     title: "The front two",
     body:
       "The sharp end of a Precision FC side is built on movement and timing — a pass weighted to arrive where the run is going, and a finish that goes where it was meant to.",
-    footnote:
-      "Every goal, assist and minute is logged after each match, so the numbers on this site are the record itself rather than a summary of it.",
+    footnote: "Two up top, and neither of them is coming back to help you.",
     image: {
       src: "/deadly-duo.jpg",
       alt: "Precision FC matchday poster — two players in the club's white and green kit under the headline Deadly Duo",

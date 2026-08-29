@@ -1,4 +1,3 @@
-import { DraftBanner } from "@/components/layout/draft-banner";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 
@@ -9,7 +8,6 @@ import { SiteHeader } from "@/components/layout/site-header";
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <DraftBanner />
       <SiteHeader />
       <main>{children}</main>
       <SiteFooter />

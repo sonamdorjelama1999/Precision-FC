@@ -39,6 +39,11 @@ export interface Player {
   updatedAt: Date;
 }
 
+/**
+ * Match types. The Fixture and GoalEvent tables still exist in the database,
+ * but no public page reads them right now — the fixtures section was removed
+ * from the site. Kept so the match log can come back without a migration.
+ */
 export type MatchStatus = "PLAYED" | "UPCOMING";
 export type GoalTeam = "PFC" | "OPPONENT";
 

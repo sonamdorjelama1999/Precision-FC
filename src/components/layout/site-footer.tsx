@@ -5,7 +5,6 @@ import { CLUB } from "@/data/club";
 
 const PAGES = [
   { href: "/", label: "Home" },
-  { href: "/fixtures", label: "Fixtures & results" },
   { href: "/squad", label: "Squad" },
   { href: "/about", label: "The club" },
 ];
@@ -18,8 +17,7 @@ export function SiteFooter() {
           <div>
             <FooterHeading>{CLUB.name}</FooterHeading>
             <p className="mt-3 max-w-[40ch]">
-              A futsal club from Kathmandu, founded in {CLUB.founded}, keeping a full record of every
-              match it plays.
+              A futsal club from Kathmandu, founded in {CLUB.founded}. Built to attack.
             </p>
           </div>
           <div>

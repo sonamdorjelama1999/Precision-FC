@@ -1,14 +1,14 @@
 import Image from "next/image";
 
 import { initials } from "@/lib/format";
-import { POSITION_LABEL, type Player, type ScorerRow } from "@/types";
+import { POSITION_LABEL, type Player } from "@/types";
 
 /**
  * The portrait squad tile. Photo fills the card, a scrim carries the shirt
  * number and name, and the player's initials sit underneath as the fallback
  * when there is no photo yet.
  */
-export function PlayerCard({ player, stats }: { player: Player; stats: ScorerRow }) {
+export function PlayerCard({ player }: { player: Player }) {
   return (
     <article className="group pfc-player-ground pfc-card-shadow relative block aspect-3/4 w-full overflow-hidden rounded-card transition-transform duration-200 hover:-translate-y-1 hover:pfc-card-shadow-hover">
       {/* photo layer — the monogram always sits underneath it */}
@@ -30,20 +30,11 @@ export function PlayerCard({ player, stats }: { player: Player; stats: ScorerRow
         ) : null}
       </div>
 
-      {/* corner badges */}
-      <div className="pointer-events-none absolute inset-x-3 top-3 flex items-start justify-between gap-2">
-        {player.isCaptain ? (
-          <span className="rounded-[3px] bg-lime px-2 py-[5px] font-mono text-[9.5px] font-semibold uppercase tracking-[0.14em] text-navy-900">
-            Captain
-          </span>
-        ) : (
-          <span />
-        )}
-        <span className="flex -translate-y-1 gap-1.5 opacity-0 transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100">
-          <Chip>{stats.goals} G</Chip>
-          <Chip>{stats.assists} A</Chip>
+      {player.isCaptain ? (
+        <span className="pointer-events-none absolute top-3 left-3 rounded-[3px] bg-lime px-2 py-[5px] font-mono text-[9.5px] font-semibold uppercase tracking-[0.14em] text-navy-900">
+          Captain
         </span>
-      </div>
+      ) : null}
 
       {/* name plate */}
       <div className="pfc-player-scrim absolute inset-x-0 bottom-0 flex items-end gap-2.5 px-3.5 pt-9 pb-3.5 sm:gap-3 sm:px-5 sm:pt-12 sm:pb-5 xl:gap-4 xl:px-6 xl:pt-14 xl:pb-6">
@@ -63,13 +54,5 @@ export function PlayerCard({ player, stats }: { player: Player; stats: ScorerRow
         </div>
       </div>
     </article>
-  );
-}
-
-function Chip({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="rounded-[3px] bg-navy-900/60 px-2 py-[5px] font-mono text-[9.5px] uppercase tracking-[0.14em] text-white backdrop-blur-sm">
-      {children}
-    </span>
   );
 }

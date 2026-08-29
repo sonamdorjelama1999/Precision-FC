@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     template: "%s — Precision FC",
   },
   description:
-    "Precision FC — futsal club founded in 2019, playing out of Rumble Futsal in Kathmandu. Fixtures, results, squad and match records.",
+    "Precision FC — futsal club founded in 2019, playing out of Rumble Futsal in Kathmandu.",
   icons: { icon: "/favicon.png" },
 };
 

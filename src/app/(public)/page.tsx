@@ -31,14 +31,16 @@ export default function HomePage() {
               <Eyebrow onDark>
                 Futsal &middot; Kathmandu &middot; Since {CLUB.founded}
               </Eyebrow>
-              <h1 className="mb-5 text-[clamp(46px,8.4vw,104px)] font-black uppercase tracking-[-0.035em]">
-                Precision
-                <em className="block not-italic text-lime">FC</em>
+              <h1 className="mb-5 text-[clamp(28px,6vw,72px)] font-black tracking-[-0.035em] whitespace-nowrap uppercase">
+                Precision <span className="text-lime">FC</span>
               </h1>
-              <p className="mb-7 max-w-[46ch] text-[clamp(16px,1.6vw,19px)] text-white/80">
-                Movement, angles and finishing. Every match the club plays is
-                logged goal by goal — the record on this site is built straight
-                from it.
+              <p className="mb-7 max-w-[48ch] text-[clamp(16px,1.6vw,19px)] text-white/80">
+                Defending is somebody else&rsquo;s plan. Put ten past us and we will put
+                eleven past you — the only number we count is the one on our side of the
+                scoreboard.
+                <span className="mt-2 block font-semibold text-white">
+                  Bring a keeper. You will need him more than we do.
+                </span>
               </p>
               <div className="flex flex-wrap gap-3">
                 <Link

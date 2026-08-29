@@ -3,13 +3,9 @@ import type { Metadata } from "next";
 import { PageHead } from "@/components/layout/page-head";
 import { SponsorStrip } from "@/components/layout/sponsor-strip";
 import { Wrap } from "@/components/layout/wrap";
-import { ScorerTable } from "@/components/players/scorer-table";
 import { SquadGroups } from "@/components/players/squad-groups";
-import { SectionHead } from "@/components/ui/section-head";
-import { getFixtures } from "@/features/fixtures/queries";
 import { getPlayers } from "@/features/players/queries";
 import { getSponsors, getStaff } from "@/features/team/queries";
-import { scorerTable, splitFixtures } from "@/lib/stats";
 
 /**
  * Statically rendered and re-generated on demand: the admin actions call
@@ -20,26 +16,22 @@ export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "Squad",
-  description: "The Precision FC squad, with goals and assists counted from every logged match.",
+  description: "The Precision FC squad — every player, by position.",
 };
 
 export default async function SquadPage() {
-  const [players, fixtures, staff, sponsors] = await Promise.all([
+  const [players, staff, sponsors] = await Promise.all([
     getPlayers(),
-    getFixtures(),
     getStaff(),
     getSponsors(),
   ]);
-
-  const { played } = splitFixtures(fixtures);
-  const scorers = scorerTable(played, players);
 
   return (
     <>
       <PageHead
         eyebrow="The players"
         title="Squad"
-        description="Goals and assists are counted from the match log — add a goal to a fixture and the player's numbers update on their own."
+        description="Every player at the club, by position."
       />
 
       <section className="py-12 md:py-17">
@@ -50,21 +42,8 @@ export default async function SquadPage() {
               Add the first one from the admin CMS and it appears here.
             </div>
           ) : (
-            <SquadGroups players={players} scorers={scorers} staff={staff} />
+            <SquadGroups players={players} staff={staff} />
           )}
-        </Wrap>
-      </section>
-
-      <section className="bg-navy-800 py-12 md:py-14">
-        <Wrap>
-          <SectionHead
-            onDark
-            eyebrow="Leaderboard"
-            title="Goal contributions"
-            description="Anyone credited with a goal or an assist in the match log appears here."
-            link={{ href: "/fixtures", label: "See the matches" }}
-          />
-          <ScorerTable rows={scorers} onDark showContributions />
         </Wrap>
       </section>
 

@@ -4,53 +4,22 @@ import Image from "next/image";
 import { PageHead } from "@/components/layout/page-head";
 import { Wrap } from "@/components/layout/wrap";
 import { Eyebrow } from "@/components/ui/eyebrow";
-import { SectionHead } from "@/components/ui/section-head";
 import { CLUB, STORY } from "@/data/club";
-import { getFixtures } from "@/features/fixtures/queries";
-import { seasonTotals, splitFixtures } from "@/lib/stats";
 
-/**
- * Statically rendered and re-generated on demand: the admin actions call
- * revalidatePath() after every save, and this interval is the safety net in
- * case a revalidation is ever missed.
- */
 export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "The Club",
-  description:
-    "The story of Precision FC: founded 2019, based at Rumble Futsal in Kathmandu, and the El Clasico rivalry with Ama Yangri FC.",
+  description: `The story of Precision FC: founded ${CLUB.founded}, based at ${CLUB.ground} in Kathmandu, and the rivalry with ${CLUB.rival}.`,
 };
 
-const STEPS = [
-  {
-    title: "1 · Open the CMS",
-    body: "Sign in at /admin. Players, numbers, positions and photos all live there.",
-  },
-  {
-    title: "2 · Add the match",
-    body: "Log the fixture with its date and opponent, then each goal with its minute and scorer.",
-  },
-  {
-    title: "3 · Done",
-    body: "Scorelines, form, season totals, head-to-head and the scorer table all recalculate on their own.",
-  },
-];
-
-export default async function AboutPage() {
-  const fixtures = await getFixtures();
-  const { played } = splitFixtures(fixtures);
-  const totals = seasonTotals(played);
-
+export default function AboutPage() {
   const facts: Array<[string, string]> = [
     ["Founded", String(CLUB.founded)],
     ["Sport", CLUB.sport],
     ["Home", CLUB.ground],
     ["Based in", CLUB.city],
-    ["Rivalry", `El Clasico v ${CLUB.rival}`],
-    ["Matches logged", String(totals.played)],
-    ["Record", `${totals.won}W ${totals.drawn}D ${totals.lost}L`],
-    ["Goals for / against", `${totals.goalsFor} / ${totals.goalsAgainst}`],
+    ["Rivalry", CLUB.rival],
   ];
 
   return (
@@ -58,7 +27,7 @@ export default async function AboutPage() {
       <PageHead
         eyebrow={`Since ${CLUB.founded}`}
         title="The club"
-        description="Who Precision FC are, where the club plays, and the fixture the season gets measured by."
+        description="Who Precision FC are, and where the club plays."
       />
 
       <section className="py-12 md:py-17">
@@ -107,25 +76,6 @@ export default async function AboutPage() {
                 </p>
               </div>
             </div>
-          </div>
-        </Wrap>
-      </section>
-
-      <section className="bg-navy-800 py-12 md:py-17">
-        <Wrap>
-          <SectionHead
-            onDark
-            eyebrow="Keeping it current"
-            title="How this site is updated"
-            description="Player and match information is managed in the admin CMS and rendered from the database."
-          />
-          <div className="grid gap-6 sm:grid-cols-3">
-            {STEPS.map((step) => (
-              <div key={step.title} className="rounded border border-white/10 bg-navy-700 p-[22px]">
-                <h3 className="mb-2 text-[17px] uppercase text-white">{step.title}</h3>
-                <p className="text-[14.5px] text-white/70">{step.body}</p>
-              </div>
-            ))}
           </div>
         </Wrap>
       </section>

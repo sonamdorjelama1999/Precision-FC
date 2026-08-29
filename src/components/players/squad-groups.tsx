@@ -5,7 +5,6 @@ import {
   POSITION_GROUP_LABEL,
   POSITION_GROUP_ORDER,
   type Player,
-  type ScorerRow,
   type StaffMember,
 } from "@/types";
 
@@ -22,15 +21,11 @@ const CARD_WIDTH = "w-[220px] shrink-0 snap-start sm:w-[260px] lg:w-[300px] xl:w
 
 export function SquadGroups({
   players,
-  scorers,
   staff,
 }: {
   players: Player[];
-  scorers: ScorerRow[];
   staff: StaffMember[];
 }) {
-  const statsByName = new Map(scorers.map((row) => [row.name, row]));
-
   const groups = POSITION_GROUP_ORDER.map((position) => ({
     position,
     label: POSITION_GROUP_LABEL[position],
@@ -45,12 +40,7 @@ export function SquadGroups({
           <CardRow>
             {group.players.map((player) => (
               <div key={player.id} className={CARD_WIDTH}>
-                <PlayerCard
-                  player={player}
-                  stats={
-                    statsByName.get(player.name) ?? { name: player.name, goals: 0, assists: 0 }
-                  }
-                />
+                <PlayerCard player={player} />
               </div>
             ))}
           </CardRow>

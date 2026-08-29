@@ -2,21 +2,15 @@ import { ArrowRight, Plus } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import { getFixtures } from "@/features/fixtures/queries";
 import { getPlayers } from "@/features/players/queries";
 import { getSponsors, getStaff } from "@/features/team/queries";
-import { signed } from "@/lib/format";
-import { seasonTotals, splitFixtures } from "@/lib/stats";
 
 export default async function AdminDashboardPage() {
-  const [players, fixtures, staff, sponsors] = await Promise.all([
+  const [players, staff, sponsors] = await Promise.all([
     getPlayers(),
-    getFixtures(),
     getStaff(),
     getSponsors(),
   ]);
-  const { played, upcoming } = splitFixtures(fixtures);
-  const totals = seasonTotals(played);
 
   const withPhoto = players.filter((player) => player.photoUrl).length;
 
@@ -40,16 +34,14 @@ export default async function AdminDashboardPage() {
         </Button>
       </header>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Tile value={players.length} label="Players" />
         <Tile value={`${withPhoto}/${players.length}`} label="With photos" />
         <Tile value={staff.length} label="Coaching staff" />
         <Tile value={sponsors.length} label="Sponsors" />
-        <Tile value={totals.played} label="Matches played" />
-        <Tile value={signed(totals.goalDifference)} label="Goal difference" />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-2">
         <Panel
           title="Squad"
           body={
@@ -69,16 +61,6 @@ export default async function AdminDashboardPage() {
           }
           href="/admin/staff"
           cta="Manage staff"
-        />
-        <Panel
-          title="Next fixture"
-          body={
-            upcoming[0]
-              ? `Precision FC v ${upcoming[0].opponent} — ${upcoming[0].competition}.`
-              : "Nothing scheduled. The home page hides the fixture card until one exists."
-          }
-          href="/fixtures"
-          cta="View public fixtures"
         />
       </div>
     </div>
