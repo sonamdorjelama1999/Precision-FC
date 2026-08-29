@@ -2,24 +2,51 @@ import Image from "next/image";
 
 import { Wrap } from "@/components/layout/wrap";
 import { Eyebrow } from "@/components/ui/eyebrow";
-import { HOME_FEATURE } from "@/data/club";
+import { HOME_FEATURES, type HomeFeature } from "@/data/club";
+import { cn } from "@/lib/utils";
 
 /**
- * The panel under the hero: caption left, poster right.
+ * The panels under the hero: a caption beside a poster.
  *
- * Light ground between the navy hero and the navy footer, so the poster reads
- * as a framed object rather than melting into the page. The two columns are
- * vertically centred, which keeps the text optically anchored against a tall
- * portrait image instead of floating at the top of it.
+ * Sides alternate down the page — first poster right, next poster left — so a
+ * run of panels reads as a rhythm rather than a stack of identical rows. On
+ * phones they all collapse to caption-then-poster, since a mirrored order
+ * would put one poster above its own caption and break the reading line.
+ *
+ * Light ground between the navy hero and the navy footer, so each poster
+ * reads as a framed object instead of melting into the page.
  */
-export function FeaturePoster() {
-  const { eyebrow, title, body, footnote, image } = HOME_FEATURE;
+export function FeaturePosters() {
+  return (
+    <>
+      {HOME_FEATURES.map((feature, index) => (
+        <FeaturePoster
+          key={feature.image.src}
+          feature={feature}
+          imageOnLeft={index % 2 === 1}
+          isLast={index === HOME_FEATURES.length - 1}
+        />
+      ))}
+    </>
+  );
+}
+
+function FeaturePoster({
+  feature,
+  imageOnLeft,
+  isLast,
+}: {
+  feature: HomeFeature;
+  imageOnLeft: boolean;
+  isLast: boolean;
+}) {
+  const { eyebrow, title, body, footnote, image } = feature;
 
   return (
-    <section className="py-14 md:py-20">
+    <section className={cn("pt-14 md:pt-20", isLast ? "pb-14 md:pb-20" : "pb-4 md:pb-6")}>
       <Wrap>
         <div className="grid grid-cols-[minmax(0,1fr)] items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)] lg:gap-16">
-          <div>
+          <div className={cn(imageOnLeft && "lg:order-2")}>
             <Eyebrow>{eyebrow}</Eyebrow>
             <h2 className="mb-5 text-[clamp(30px,4.4vw,46px)] font-black uppercase tracking-[-0.03em]">
               {title}
@@ -28,7 +55,12 @@ export function FeaturePoster() {
             <p className="max-w-[46ch] text-[15px] text-ink-3">{footnote}</p>
           </div>
 
-          <div className="justify-self-center lg:justify-self-end">
+          <div
+            className={cn(
+              "justify-self-center",
+              imageOnLeft ? "lg:order-1 lg:justify-self-start" : "lg:justify-self-end",
+            )}
+          >
             <Image
               src={image.src}
               alt={image.alt}

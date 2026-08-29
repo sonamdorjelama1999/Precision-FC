@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { FeaturePoster } from "@/components/home/feature-poster";
+import { FeaturePosters } from "@/components/home/feature-poster";
 import { Wrap } from "@/components/layout/wrap";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { CLUB } from "@/data/club";
@@ -71,7 +71,7 @@ export default function HomePage() {
         </Wrap>
       </section>
 
-      <FeaturePoster />
+      <FeaturePosters />
     </>
   );
 }
