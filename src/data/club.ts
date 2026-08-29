@@ -13,7 +13,7 @@ export const CLUB: ClubInfo = {
   city: "Kathmandu, Nepal",
   ground: "Rumble Futsal",
   sport: "Futsal",
-  rival: "Ama Yangri FC",
+  rival: "Yangrima FC",
   blurb:
     "Precision FC is a futsal side out of Kathmandu, playing its home games at Rumble Futsal. " +
     "The club keeps a full record of every fixture it plays — goals, timings and scorers — " +

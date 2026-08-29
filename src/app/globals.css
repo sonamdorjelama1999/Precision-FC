@@ -189,6 +189,14 @@
       0 2px 4px rgba(7, 21, 35, 0.1),
       0 14px 30px -18px rgba(7, 21, 35, 0.45);
   }
+  /* horizontal squad rows scroll without a visible scrollbar */
+  .pfc-no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .pfc-no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
   .pfc-card-shadow-hover {
     box-shadow:
       0 4px 8px rgba(7, 21, 35, 0.12),

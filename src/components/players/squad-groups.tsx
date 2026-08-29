@@ -1,3 +1,4 @@
+import { CardRow } from "@/components/players/card-row";
 import { PlayerCard } from "@/components/players/player-card";
 import { StaffCard } from "@/components/players/staff-card";
 import {
@@ -12,9 +13,13 @@ import {
  * The squad, grouped by position under its own heading — the layout a club
  * site uses, read keepers-first and back to front.
  *
- * A server component: no filtering state to hold, because the headings do
- * the job the old filter chips did, and the whole page stays static.
+ * Each group is ONE row that scrolls sideways, never a wrapping grid. That
+ * keeps every card the same fixed size whether a group holds two keepers or
+ * eight forwards; a wrapping grid would push the ninth card onto a second row
+ * and a fill-the-row grid would resize the cards per group.
  */
+const CARD_WIDTH = "w-[220px] shrink-0 snap-start sm:w-[260px] lg:w-[300px] xl:w-[350px]";
+
 export function SquadGroups({
   players,
   scorers,
@@ -37,28 +42,31 @@ export function SquadGroups({
       {groups.map((group) => (
         <section key={group.position}>
           <GroupHeading label={group.label} count={group.players.length} />
-          <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 xl:grid-cols-5">
+          <CardRow>
             {group.players.map((player) => (
-              <PlayerCard
-                key={player.id}
-                player={player}
-                stats={
-                  statsByName.get(player.name) ?? { name: player.name, goals: 0, assists: 0 }
-                }
-              />
+              <div key={player.id} className={CARD_WIDTH}>
+                <PlayerCard
+                  player={player}
+                  stats={
+                    statsByName.get(player.name) ?? { name: player.name, goals: 0, assists: 0 }
+                  }
+                />
+              </div>
             ))}
-          </div>
+          </CardRow>
         </section>
       ))}
 
       {staff.length > 0 ? (
         <section>
           <GroupHeading label={staff.length === 1 ? "Manager" : "Coaching staff"} />
-          <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 xl:grid-cols-5">
+          <CardRow>
             {staff.map((member) => (
-              <StaffCard key={member.id} member={member} />
+              <div key={member.id} className={CARD_WIDTH}>
+                <StaffCard member={member} />
+              </div>
             ))}
-          </div>
+          </CardRow>
         </section>
       ) : null}
     </div>

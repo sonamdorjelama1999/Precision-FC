@@ -9,7 +9,7 @@ import type { StaffMember } from "@/types";
  */
 export function StaffCard({ member }: { member: StaffMember }) {
   return (
-    <article className="group pfc-player-ground pfc-card-shadow relative block aspect-3/4 overflow-hidden rounded-card transition-transform duration-200 hover:-translate-y-1 hover:pfc-card-shadow-hover">
+    <article className="group pfc-player-ground pfc-card-shadow relative block aspect-3/4 w-full overflow-hidden rounded-card transition-transform duration-200 hover:-translate-y-1 hover:pfc-card-shadow-hover">
       <div className="absolute inset-0 grid place-items-center overflow-hidden">
         <span
           aria-hidden
@@ -22,17 +22,17 @@ export function StaffCard({ member }: { member: StaffMember }) {
             src={member.photoUrl}
             alt={member.name}
             fill
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 240px"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 216px, (max-width: 1280px) 300px, 350px"
             className="absolute inset-0 h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-[1.045]"
           />
         ) : null}
       </div>
 
-      <div className="pfc-player-scrim absolute inset-x-0 bottom-0 px-3.5 pt-9 pb-3.5 sm:px-[18px] sm:pt-11 sm:pb-[18px]">
-        <h3 className="text-base leading-tight font-extrabold tracking-[-0.015em] text-white sm:text-[19px]">
+      <div className="pfc-player-scrim absolute inset-x-0 bottom-0 px-3.5 pt-9 pb-3.5 sm:px-5 sm:pt-12 sm:pb-5 xl:px-6 xl:pt-14 xl:pb-6">
+        <h3 className="text-base leading-tight font-extrabold tracking-[-0.015em] text-white sm:text-[19px] xl:text-[22px]">
           {member.name}
         </h3>
-        <p className="mt-1 font-mono text-[10.5px] uppercase tracking-[0.14em] text-teal">
+        <p className="mt-1 font-mono text-[10.5px] uppercase tracking-[0.14em] text-teal xl:text-[12px]">
           {member.role}
         </p>
       </div>
