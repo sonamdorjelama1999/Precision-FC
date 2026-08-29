@@ -48,3 +48,25 @@ export const STORY: StoryBlock[] = [
  * site. Flip this to false once real results are in the database.
  */
 export const DRAFT_DATA = true;
+
+/**
+ * The feature panel under the hero on the home page.
+ *
+ * Copy lives here rather than in the component so it can be reworded without
+ * touching JSX. Swap `image` for any file in /public — the panel keeps its
+ * own aspect ratio from the file's dimensions below.
+ */
+export const HOME_FEATURE = {
+  eyebrow: "Matchday",
+  title: "The front two",
+  body:
+    "The sharp end of a Precision FC side is built on movement and timing — a pass weighted to arrive where the run is going, and a finish that goes where it was meant to.",
+  footnote:
+    "Every goal, assist and minute is logged after each match, so the numbers on this site are the record itself rather than a summary of it.",
+  image: {
+    src: "/deadly-duo.jpg",
+    alt: "Precision FC matchday poster — two players in the club's white and green kit under the headline Deadly Duo",
+    width: 1000,
+    height: 1250,
+  },
+} as const;
