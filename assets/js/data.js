@@ -33,9 +33,19 @@ const CLUB = {
 
 /* --------------------------------------------------------------------------
    SQUAD
-   pos: "GK" | "DEF" | "WING" | "PIVOT" | "UNI"   (uni = universal)
+   pos:   "GK" | "DEF" | "WING" | "PIVOT" | "UNI"   (uni = universal)
+   photo: path to a player photo, or null.
+
+   PHOTOS — the card is a portrait tile, so:
+     * put files in  assets/img/players/  e.g. "assets/img/players/asok.png"
+     * portrait crop, roughly 3:4 (e.g. 600 x 800), head near the top
+     * a cut-out on a transparent PNG looks best — the card supplies the
+       background — but a normal photo works fine too
+     * no photo yet? Leave it null and the card shows the player's initials
+       over the crest. Nothing breaks, and a bad path falls back the same way.
+
    Goals and assists are NOT written here — they are counted from FIXTURES.
-   Copy the block below to add a player.
+   Copy the commented block below to add a player.
    -------------------------------------------------------------------------- */
 
 const SQUAD = [
@@ -44,6 +54,7 @@ const SQUAD = [
     name: "Asok Sunuwar",
     pos: "PIVOT",
     role: "Club top scorer",
+    photo: null,
     captain: false,
     joined: null
   }
@@ -53,6 +64,7 @@ const SQUAD = [
   //   name: "Full Name",
   //   pos: "GK",
   //   role: "Short description, or leave as an empty string",
+  //   photo: "assets/img/players/full-name.png",
   //   captain: false,
   //   joined: 2019
   // }

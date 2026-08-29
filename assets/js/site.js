@@ -306,6 +306,46 @@
 
   /* ---------------- page: squad ---------------- */
 
+  var POS_LABEL = {
+    GK: "Goalkeeper",
+    DEF: "Defender",
+    WING: "Winger",
+    PIVOT: "Pivot",
+    UNI: "Universal"
+  };
+
+  function initials(name) {
+    return String(name || "")
+      .split(/\s+/).filter(Boolean).slice(0, 2)
+      .map(function (w) { return w.charAt(0).toUpperCase(); })
+      .join("");
+  }
+
+  function playerCard(p) {
+    var s = statsFor(p.name);
+    // the monogram always sits underneath; a photo simply covers it, and a
+    // photo that fails to load removes itself and reveals it again.
+    var photo = '<span class="monogram" aria-hidden="true">' + esc(initials(p.name)) + "</span>" +
+      (p.photo
+        ? '<img src="' + esc(p.photo) + '" alt="' + esc(p.name) + '" loading="lazy" onerror="this.remove()">'
+        : "");
+
+    return '<article class="player" tabindex="0">' +
+      '<div class="player-photo">' + photo + "</div>" +
+      '<div class="player-tags">' +
+      (p.captain ? '<span class="tag tag--captain">Captain</span>' : "<span></span>") +
+      '<span class="player-ga">' +
+      '<span class="tag">' + s.goals + " G</span>" +
+      '<span class="tag">' + s.assists + " A</span>" +
+      "</span></div>" +
+      '<div class="player-meta">' +
+      (p.no != null ? '<span class="player-no">' + esc(p.no) + "</span>" : "") +
+      '<div class="player-name"><h3>' + esc(p.name) + "</h3>" +
+      "<p>" + esc(POS_LABEL[p.pos] || p.pos || "Squad") + "</p>" +
+      (p.role ? '<p class="role-line">' + esc(p.role) + "</p>" : "") +
+      "</div></div></article>";
+  }
+
   function squad() {
     var grid = el("squad-grid");
     if (!grid) return;
@@ -315,21 +355,11 @@
       if (!list.length) {
         return '<div class="card" style="grid-column:1/-1;color:var(--ink-2)">No players in this position yet.</div>';
       }
-      return list.map(function (p) {
-        var s = statsFor(p.name);
-        return '<article class="player' + (p.captain ? " player--captain" : "") + '">' +
-          (p.no != null ? '<span class="num" aria-hidden="true">' + esc(p.no) + "</span>" : "") +
-          '<p class="pos">' + esc(p.pos || "") + (p.captain ? " &middot; Captain" : "") + "</p>" +
-          "<h3>" + esc(p.name) + "</h3>" +
-          '<p class="role">' + esc(p.role || "") + "</p>" +
-          '<div class="pstats"><div><b>' + s.goals + "</b>Goals</div><div><b>" + s.assists + "</b>Assists</div></div>" +
-          "</article>";
-      }).join("") +
-      '<article class="card" style="border-style:dashed">' +
-      '<strong style="display:block;margin-bottom:6px;font-size:15px">Add a player</strong>' +
-      '<p style="color:var(--ink-2);font-size:13.5px;line-height:1.55;margin:0">' +
-      "Copy the commented block in <code>data.js</code> into the <code>SQUAD</code> list. " +
-      "Goals and assists fill in from the match log.</p></article>";
+      return list.map(playerCard).join("") +
+        '<article class="player-add">' +
+        "<strong>Add a player</strong>" +
+        "<p>Copy the commented block in <code>data.js</code> into the <code>SQUAD</code> list. " +
+        "Photos go in the players folder &mdash; without one, the card shows initials.</p></article>";
     }
 
     grid.innerHTML = cards("ALL");
