@@ -1,0 +1,126 @@
+// Precision FC — database schema
+//
+// Prisma 7 notes:
+//  * the client is generated into node_modules/@prisma/client, so app code
+//    imports { PrismaClient } from "@prisma/client"
+//  * connection URLs live in prisma.config.ts, not here; the datasource
+//    block carries the provider only
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Auth
+// ---------------------------------------------------------------------------
+
+enum Role {
+  ADMIN
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String // bcrypt hash — never a plaintext password
+  role      Role     @default(ADMIN)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("admins")
+}
+
+// ---------------------------------------------------------------------------
+// Squad
+// ---------------------------------------------------------------------------
+
+enum PlayerPosition {
+  GOALKEEPER
+  DEFENDER
+  MIDFIELDER
+  WINGER
+  FORWARD
+  PIVOT
+}
+
+model Player {
+  id           String         @id @default(cuid())
+  playerNumber Int            @unique
+  name         String
+  position     PlayerPosition
+  /// Public URL served to the browser.
+  photoUrl     String?
+  /// Object key inside the storage bucket — what deletes and replaces need.
+  photoPath    String?
+  /// Optional one-liner shown on the card, e.g. "Club top scorer".
+  role         String?
+  isCaptain    Boolean        @default(false)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  goals GoalEvent[]
+
+  @@index([playerNumber])
+  @@map("players")
+}
+
+// ---------------------------------------------------------------------------
+// Matches
+// ---------------------------------------------------------------------------
+
+enum MatchStatus {
+  PLAYED
+  UPCOMING
+}
+
+model Fixture {
+  id          String      @id @default(cuid())
+  date        DateTime    @db.Date
+  opponent    String
+  isHome      Boolean     @default(true)
+  status      MatchStatus @default(UPCOMING)
+  /// Free text — "Friendly", "El Clasico", "League".
+  competition String      @default("Friendly")
+  kickoff     String?
+  note        String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  events GoalEvent[]
+
+  @@index([date])
+  @@map("fixtures")
+}
+
+enum GoalTeam {
+  PFC
+  OPPONENT
+}
+
+/// One goal. The scoreline is never stored — it is counted from these rows,
+/// which is what keeps the squad page and the results page in agreement.
+model GoalEvent {
+  id        String   @id @default(cuid())
+  fixtureId String
+  fixture   Fixture  @relation(fields: [fixtureId], references: [id], onDelete: Cascade)
+  team      GoalTeam
+  minute    Int?
+
+  /// Set when the scorer is a current squad member. Preferred over scorerName.
+  playerId String?
+  player   Player? @relation(fields: [playerId], references: [id], onDelete: SetNull)
+
+  /// Free-text fallback: opponents, guests, and historic records with no
+  /// squad row to point at. Deleting a player leaves this intact.
+  scorerName String?
+  assistName String?
+
+  createdAt DateTime @default(now())
+
+  @@index([fixtureId])
+  @@index([playerId])
+  @@map("goal_events")
+}

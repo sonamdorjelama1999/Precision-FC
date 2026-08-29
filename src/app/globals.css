@@ -1,0 +1,209 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ==========================================================================
+   Precision FC design tokens.
+   These are the values the original static stylesheet used, promoted into
+   the Tailwind theme so they are available as utilities
+   (bg-navy-900, text-teal, font-display, rounded-card, …).
+   ========================================================================== */
+
+@theme {
+  /* club palette — taken from the crest */
+  --color-navy-900: #071523;
+  --color-navy-800: #0b1e30;
+  --color-navy-700: #10293f;
+  --color-navy-600: #17364f;
+  --color-navy-500: #22496a;
+
+  --color-teal: #21c7ba;
+  --color-teal-dark: #12968d;
+  --color-lime: #c7f03f;
+  --color-lime-dark: #9cc318;
+
+  --color-paper: #f3f5f4;
+  --color-paper-2: #ffffff;
+  --color-line: #dfe3e2;
+  --color-line-strong: #c3c9c8;
+
+  --color-ink: #0b1e30;
+  --color-ink-2: #4d5f70;
+  --color-ink-3: #7b8b99;
+
+  --color-loss: #e2593f;
+
+  /* typography */
+  --font-display: var(--font-archivo), "Arial Narrow", system-ui, sans-serif;
+  --font-sans: var(--font-inter), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* layout */
+  --radius-card: 16px;
+}
+
+/* --------------------------------------------------------------------------
+   shadcn/ui semantic tokens, tuned to the club palette so the admin CMS
+   reads as part of the same product rather than as stock shadcn.
+   -------------------------------------------------------------------------- */
+
+:root {
+  --radius: 0.5rem;
+
+  --background: #f3f5f4;
+  --foreground: #0b1e30;
+  --card: #ffffff;
+  --card-foreground: #0b1e30;
+  --popover: #ffffff;
+  --popover-foreground: #0b1e30;
+  --primary: #0b1e30;
+  --primary-foreground: #ffffff;
+  --secondary: #e8ecec;
+  --secondary-foreground: #0b1e30;
+  --muted: #eef1f1;
+  --muted-foreground: #7b8b99;
+  --accent: #e6f7f5;
+  --accent-foreground: #0b1e30;
+  --destructive: #e2593f;
+  --destructive-foreground: #ffffff;
+  --border: #dfe3e2;
+  --input: #c3c9c8;
+  --ring: #21c7ba;
+}
+
+.dark {
+  --background: #071523;
+  --foreground: #f1f5f4;
+  --card: #0b1e30;
+  --card-foreground: #f1f5f4;
+  --popover: #0b1e30;
+  --popover-foreground: #f1f5f4;
+  --primary: #c7f03f;
+  --primary-foreground: #071523;
+  --secondary: #10293f;
+  --secondary-foreground: #f1f5f4;
+  --muted: #10293f;
+  --muted-foreground: #93a3af;
+  --accent: #10293f;
+  --accent-foreground: #f1f5f4;
+  --destructive: #e2593f;
+  --destructive-foreground: #ffffff;
+  --border: rgba(255, 255, 255, 0.12);
+  --input: rgba(255, 255, 255, 0.2);
+  --ring: #21c7ba;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-paper text-ink font-sans antialiased;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display font-extrabold tracking-[-0.02em] leading-[1.02];
+    text-wrap: balance;
+  }
+}
+
+/* ==========================================================================
+   The handful of effects that are genuinely cleaner as CSS than as a long
+   utility string: layered gradients, the grid overlay, the card scrim.
+   Everything else in the public site is Tailwind utilities.
+   ========================================================================== */
+
+@layer components {
+  .pfc-hero-glow {
+    background:
+      radial-gradient(900px 480px at 82% 8%, rgba(33, 199, 186, 0.22), transparent 62%),
+      radial-gradient(680px 420px at 8% 96%, rgba(199, 240, 63, 0.1), transparent 62%);
+  }
+  .pfc-hero-grid {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), transparent 78%);
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), transparent 78%);
+  }
+  .pfc-page-glow {
+    background: radial-gradient(760px 340px at 88% 0%, rgba(33, 199, 186, 0.2), transparent 60%);
+  }
+
+  .pfc-player-ground {
+    background: radial-gradient(
+      118% 80% at 50% 2%,
+      #2a6a7f 0%,
+      #1a4964 34%,
+      #102f4a 62%,
+      #0a1c2e 86%,
+      #071523 100%
+    );
+  }
+  .pfc-player-scrim {
+    background: linear-gradient(
+      to top,
+      rgba(4, 12, 20, 0.94) 22%,
+      rgba(4, 12, 20, 0.72) 55%,
+      transparent 100%
+    );
+  }
+  .pfc-card-shadow {
+    box-shadow:
+      0 2px 4px rgba(7, 21, 35, 0.1),
+      0 14px 30px -18px rgba(7, 21, 35, 0.45);
+  }
+  .pfc-card-shadow-hover {
+    box-shadow:
+      0 4px 8px rgba(7, 21, 35, 0.12),
+      0 26px 46px -20px rgba(7, 21, 35, 0.55);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
