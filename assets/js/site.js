@@ -33,6 +33,33 @@
   }
   function el(id) { return document.getElementById(id); }
 
+  /* ---------------- squad source ----------------
+     data.js is the source of truth. The squad manager (admin.js) can hold a
+     working copy in this browser's local storage; when one exists it wins,
+     until it is exported back into data.js or reset. ------------------------ */
+
+  var STORE_KEY = "pfc.squad.v1";
+
+  function storedSquad() {
+    try {
+      var raw = window.localStorage.getItem(STORE_KEY);
+      if (!raw) return null;
+      var parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function byNumber(a, b) {
+    var x = a.no == null ? 999 : +a.no;
+    var y = b.no == null ? 999 : +b.no;
+    return x - y || String(a.name || "").localeCompare(String(b.name || ""));
+  }
+
+  var squadList = (storedSquad() || SQUAD).slice().sort(byNumber);
+  var squadIsLocal = !!storedSquad();
+
   /* ---------------- derived data ---------------- */
 
   var played = FIXTURES.filter(function (f) { return f.status === "played"; })
@@ -346,23 +373,40 @@
       "</div></div></article>";
   }
 
+  var squadFilter = "ALL";
+
+  function renderSquadGrid() {
+    var grid = el("squad-grid");
+    if (!grid) return;
+
+    var list = squadList.filter(function (p) {
+      return squadFilter === "ALL" || p.pos === squadFilter;
+    });
+
+    if (!list.length) {
+      grid.innerHTML =
+        '<div class="card" style="grid-column:1/-1;color:var(--ink-2)">No players in this position yet.</div>';
+    } else {
+      grid.innerHTML = list.map(function (p) {
+        return playerCard(p).replace(
+          '<article class="player"',
+          '<article class="player" data-player="' + esc(p.name) + '"'
+        );
+      }).join("") +
+        '<article class="player-add">' +
+        "<strong>Add a player</strong>" +
+        "<p>Open the squad manager, or copy the commented block in <code>data.js</code> " +
+        "into the <code>SQUAD</code> list.</p></article>";
+    }
+
+    document.dispatchEvent(new CustomEvent("pfc:squad-rendered"));
+  }
+
   function squad() {
     var grid = el("squad-grid");
     if (!grid) return;
 
-    function cards(filter) {
-      var list = SQUAD.filter(function (p) { return filter === "ALL" || p.pos === filter; });
-      if (!list.length) {
-        return '<div class="card" style="grid-column:1/-1;color:var(--ink-2)">No players in this position yet.</div>';
-      }
-      return list.map(playerCard).join("") +
-        '<article class="player-add">' +
-        "<strong>Add a player</strong>" +
-        "<p>Copy the commented block in <code>data.js</code> into the <code>SQUAD</code> list. " +
-        "Photos go in the players folder &mdash; without one, the card shows initials.</p></article>";
-    }
-
-    grid.innerHTML = cards("ALL");
+    renderSquadGrid();
 
     var bar = el("squad-filter");
     if (bar) {
@@ -371,7 +415,8 @@
         if (!b) return;
         bar.querySelectorAll("button").forEach(function (x) { x.setAttribute("aria-pressed", "false"); });
         b.setAttribute("aria-pressed", "true");
-        grid.innerHTML = cards(b.dataset.pos);
+        squadFilter = b.dataset.pos;
+        renderSquadGrid();
       });
     }
 
@@ -417,6 +462,34 @@
   }
 
   /* ---------------- boot ---------------- */
+
+  /* ---------------- public API (used by admin.js) ---------------- */
+
+  window.PFC = {
+    STORE_KEY: STORE_KEY,
+    POS_LABEL: POS_LABEL,
+    isLocal: function () { return squadIsLocal; },
+    getSquad: function () { return squadList.slice(); },
+    getFileSquad: function () { return SQUAD.slice(); },
+    setSquad: function (list) {
+      squadList = list.slice().sort(byNumber);
+      squadIsLocal = true;
+      try {
+        window.localStorage.setItem(STORE_KEY, JSON.stringify(squadList));
+      } catch (e) {
+        console.warn("Could not save the squad locally:", e);
+      }
+      renderSquadGrid();
+    },
+    resetSquad: function () {
+      try { window.localStorage.removeItem(STORE_KEY); } catch (e) {}
+      squadList = SQUAD.slice().sort(byNumber);
+      squadIsLocal = false;
+      renderSquadGrid();
+    },
+    statsFor: statsFor,
+    escape: esc
+  };
 
   document.addEventListener("DOMContentLoaded", function () {
     try {

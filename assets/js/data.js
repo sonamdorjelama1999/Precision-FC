@@ -5,6 +5,11 @@
    Everything else (stats, tables, top-scorer lists, form guide) is calculated
    from what is here.
 
+   SQUAD CHANGES CAN BE DONE IN THE BROWSER
+   Open  squad.html?admin=1  to add, edit and remove players in a form, then
+   press "Download data.js" and drop the file back over this one. Only you
+   see that panel — it is stored in your own browser, not on the site.
+
    >>> DRAFT MODE <<<
    `CLUB.draft` is true, so every page shows a yellow "draft data" banner.
    Match dates, scores and goal times below are PLACEHOLDERS so the site has
