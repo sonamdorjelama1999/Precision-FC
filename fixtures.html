@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fixtures &amp; Results — Precision FC</title>
+<meta name="description" content="Every Precision FC fixture and result, with goal timelines, season totals and a record against each opponent.">
+<link rel="icon" href="assets/img/favicon.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800;900&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="index.html">
+      <img src="assets/img/crest.png" alt="" width="38">
+      <div><b>Precision FC</b><span>Est. 2019 &middot; Kathmandu</span></div>
+    </a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav">Menu</button>
+    <nav class="nav" id="nav" aria-label="Main">
+      <a href="index.html">Home</a>
+      <a href="fixtures.html" aria-current="page">Fixtures</a>
+      <a href="squad.html">Squad</a>
+      <a href="about.html">Club</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <section class="page-head on-dark">
+    <div class="wrap">
+      <p class="eyebrow">Match record</p>
+      <h1>Fixtures &amp; results</h1>
+      <p>Every match logged, goal by goal. Open any result to see when the goals went in and who scored them.</p>
+    </div>
+  </section>
+
+  <section class="section section--tight">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Season totals</p>
+          <h2 style="font-size:clamp(24px,3vw,32px)">Summary</h2>
+        </div>
+        <div class="form-line" id="form-fixtures" aria-label="Recent form"></div>
+      </div>
+      <div class="grid grid--4" id="season-summary"></div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:24px">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Scheduled</p>
+          <h2 style="font-size:clamp(24px,3vw,32px)">Upcoming</h2>
+        </div>
+      </div>
+      <div id="list-upcoming"></div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:0">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Played</p>
+          <h2 style="font-size:clamp(24px,3vw,32px)">Results</h2>
+          <p>Most recent first.</p>
+        </div>
+      </div>
+      <div id="list-results"></div>
+    </div>
+  </section>
+
+  <section class="section band">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Head to head</p>
+          <h2 style="font-size:clamp(24px,3vw,32px)">Record by opponent</h2>
+          <p>How the club has fared against each side it has faced.</p>
+        </div>
+      </div>
+      <div class="table-scroll" id="opponent-table"></div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <h4>Precision FC</h4>
+        <p>A futsal club from Kathmandu, founded in 2019, keeping a full record of every match it plays.</p>
+      </div>
+      <div>
+        <h4>Pages</h4>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="fixtures.html">Fixtures &amp; results</a></li>
+          <li><a href="squad.html">Squad</a></li>
+          <li><a href="about.html">The club</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Where we play</h4>
+        <ul>
+          <li data-club-ground>Rumble Futsal</li>
+          <li data-club-city>Kathmandu, Nepal</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; <span id="year">2026</span> Precision FC</span>
+      <span>Est. 2019</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/site.js"></script>
+</body>
+</html>
