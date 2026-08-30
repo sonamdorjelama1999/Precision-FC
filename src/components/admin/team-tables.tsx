@@ -1,22 +1,10 @@
 "use client";
 
-import { ExternalLink, Loader2, Pencil, Trash2 } from "lucide-react";
+import { ExternalLink, Pencil, Trash2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
-import { toast } from "sonner";
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { DeleteDialog, EmptyState, useDeleteFlow } from "@/components/admin/admin-table-kit";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,102 +18,6 @@ import {
 import { deleteSponsor, deleteStaffMember } from "@/features/team/actions";
 import { initials } from "@/lib/format";
 import { SPONSOR_TIER_LABEL, type Sponsor, type StaffMember } from "@/types";
-
-/** Shared delete-confirmation wiring for both tables. */
-function useDeleteFlow(action: (id: string) => Promise<{ ok: boolean; message?: string }>) {
-  const router = useRouter();
-  const [target, setTarget] = useState<{ id: string; name: string } | null>(null);
-  const [isPending, startTransition] = useTransition();
-
-  function confirm() {
-    if (!target) return;
-    const current = target;
-    startTransition(async () => {
-      const result = await action(current.id);
-      if (result.ok) {
-        toast.success(result.message ?? "Removed.");
-        setTarget(null);
-        router.refresh();
-      } else {
-        toast.error(result.message ?? "Could not delete.");
-      }
-    });
-  }
-
-  return { target, setTarget, isPending, confirm };
-}
-
-function EmptyState({
-  title,
-  body,
-  href,
-  cta,
-}: {
-  title: string;
-  body: string;
-  href: string;
-  cta: string;
-}) {
-  return (
-    <div className="rounded-lg border border-dashed border-border bg-card p-10 text-center">
-      <p className="mb-1 font-display text-lg font-bold uppercase">{title}</p>
-      <p className="mb-5 text-sm text-muted-foreground">{body}</p>
-      <Button asChild variant="lime">
-        <Link href={href}>{cta}</Link>
-      </Button>
-    </div>
-  );
-}
-
-function DeleteDialog({
-  target,
-  onOpenChange,
-  onConfirm,
-  isPending,
-  noun,
-}: {
-  target: { name: string } | null;
-  onOpenChange: (open: boolean) => void;
-  onConfirm: () => void;
-  isPending: boolean;
-  noun: string;
-}) {
-  return (
-    <AlertDialog open={target !== null} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Delete {noun}?</AlertDialogTitle>
-          <AlertDialogDescription>
-            Are you sure you want to delete <strong>{target?.name}</strong>? The uploaded image is
-            removed too. This action cannot be undone.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            disabled={isPending}
-            onClick={(event) => {
-              event.preventDefault();
-              onConfirm();
-            }}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-          >
-            {isPending ? (
-              <>
-                <Loader2 className="size-4 animate-spin" />
-                Deleting…
-              </>
-            ) : (
-              "Delete"
-            )}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-  );
-}
-
-// ---------------------------------------------------------------------------
 
 export function StaffTable({ staff }: { staff: StaffMember[] }) {
   const { target, setTarget, isPending, confirm } = useDeleteFlow(deleteStaffMember);

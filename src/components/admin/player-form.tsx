@@ -1,14 +1,14 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Upload, X } from "lucide-react";
-import Image from "next/image";
+import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
+import { ImageField, type ImageFieldState } from "@/components/admin/image-field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,8 +20,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { createPlayer, updatePlayer } from "@/features/players/actions";
-import { initials } from "@/lib/format";
-import { cn } from "@/lib/utils";
 import {
   ACCEPTED_IMAGE_TYPES,
   MAX_PHOTO_BYTES,
@@ -38,16 +36,17 @@ import { PLAYER_POSITIONS, POSITION_LABEL, type Player } from "@/types";
  * again inside the server action, so a crafted request cannot bypass it.
  * Field errors returned by the server are pushed back onto the matching
  * inputs rather than shown only as a toast.
+ *
+ * The photo picker is the same ImageField the staff and sponsor forms use —
+ * this form predates that extraction, which is why it used to carry its own
+ * copy of the upload markup.
  */
 export function PlayerForm({ player }: { player?: Player }) {
   const router = useRouter();
   const isEdit = Boolean(player);
 
-  const fileRef = useRef<HTMLInputElement>(null);
-  const [preview, setPreview] = useState<string | null>(player?.photoUrl ?? null);
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photo, setPhoto] = useState<ImageFieldState>({ file: null, remove: false });
   const [photoError, setPhotoError] = useState<string | null>(null);
-  const [removePhoto, setRemovePhoto] = useState(false);
 
   const {
     register,
@@ -71,39 +70,6 @@ export function PlayerForm({ player }: { player?: Player }) {
   const name = watch("name");
   const isCaptain = watch("isCaptain");
 
-  // Object URLs are not garbage collected on their own.
-  useEffect(() => {
-    return () => {
-      if (preview?.startsWith("blob:")) URL.revokeObjectURL(preview);
-    };
-  }, [preview]);
-
-  function onPickPhoto(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const parsed = photoSchema.safeParse(file);
-    if (!parsed.success) {
-      setPhotoError(parsed.error.issues[0]?.message ?? "Invalid image.");
-      setPhotoFile(null);
-      event.target.value = "";
-      return;
-    }
-
-    setPhotoError(null);
-    setPhotoFile(file);
-    setRemovePhoto(false);
-    setPreview(URL.createObjectURL(file));
-  }
-
-  function clearPhoto() {
-    setPhotoFile(null);
-    setPhotoError(null);
-    setPreview(null);
-    setRemovePhoto(isEdit);
-    if (fileRef.current) fileRef.current.value = "";
-  }
-
   async function onSubmit(values: PlayerFormValues) {
     const formData = new FormData();
     formData.set("playerNumber", String(values.playerNumber));
@@ -111,8 +77,8 @@ export function PlayerForm({ player }: { player?: Player }) {
     formData.set("position", values.position);
     formData.set("role", values.role);
     formData.set("isCaptain", values.isCaptain ? "true" : "false");
-    if (photoFile) formData.set("photo", photoFile);
-    if (removePhoto) formData.set("removePhoto", "true");
+    if (photo.file) formData.set("photo", photo.file);
+    if (photo.remove) formData.set("removePhoto", "true");
 
     const result = player
       ? await updatePlayer(player.id, formData)
@@ -137,54 +103,17 @@ export function PlayerForm({ player }: { player?: Player }) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="max-w-3xl space-y-8">
       <div className="grid gap-8 md:grid-cols-[220px_1fr]">
-        {/* photo */}
-        <div className="space-y-3">
-          <Label>Player photo</Label>
-          <div className="pfc-player-ground relative grid aspect-3/4 place-items-center overflow-hidden rounded-card">
-            {preview ? (
-              // Object URLs and Supabase URLs both go through a plain img here
-              // because next/image cannot optimise a blob: preview.
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={preview} alt="" className="absolute inset-0 size-full object-cover object-top" />
-            ) : (
-              <span className="font-display text-6xl font-black text-white/15">
-                {initials(name || "Player") || "?"}
-              </span>
-            )}
-          </div>
-
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="flex-1"
-              onClick={() => fileRef.current?.click()}
-            >
-              <Upload className="size-4" />
-              {preview ? "Replace" : "Upload"}
-            </Button>
-            {preview ? (
-              <Button type="button" variant="ghost" size="sm" onClick={clearPhoto}>
-                <X className="size-4" />
-                <span className="sr-only">Remove photo</span>
-              </Button>
-            ) : null}
-          </div>
-
-          <input
-            ref={fileRef}
-            type="file"
-            accept={ACCEPTED_IMAGE_TYPES.join(",")}
-            className="hidden"
-            onChange={onPickPhoto}
-          />
-
-          <p className={cn("text-xs", photoError ? "text-destructive" : "text-muted-foreground")}>
-            {photoError ??
-              `JPG, PNG or WebP, up to ${Math.round(MAX_PHOTO_BYTES / 1024 / 1024)} MB. Portrait crops look best.`}
-          </p>
-        </div>
+        <ImageField
+          label="Player photo"
+          hint={`JPG, PNG or WebP, up to ${Math.round(MAX_PHOTO_BYTES / 1024 / 1024)} MB. Portrait crops look best.`}
+          schema={photoSchema}
+          accept={ACCEPTED_IMAGE_TYPES}
+          existingUrl={player?.photoUrl ?? null}
+          fallbackText={name || "Player"}
+          error={photoError}
+          onErrorChange={setPhotoError}
+          onChange={setPhoto}
+        />
 
         {/* fields */}
         <div className="space-y-5">

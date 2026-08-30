@@ -1,22 +1,10 @@
 "use client";
 
-import { Loader2, Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
-import { toast } from "sonner";
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { DeleteDialog, EmptyState, useDeleteFlow } from "@/components/admin/admin-table-kit";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,37 +20,16 @@ import { formatShortDate, initials } from "@/lib/format";
 import { POSITION_LABEL, type Player } from "@/types";
 
 export function PlayerTable({ players }: { players: Player[] }) {
-  const router = useRouter();
-  const [target, setTarget] = useState<Player | null>(null);
-  const [isPending, startTransition] = useTransition();
-
-  function confirmDelete() {
-    if (!target) return;
-    const player = target;
-
-    startTransition(async () => {
-      const result = await deletePlayer(player.id);
-      if (result.ok) {
-        toast.success(result.message ?? "Player removed.");
-        setTarget(null);
-        router.refresh();
-      } else {
-        toast.error(result.message ?? "Could not delete the player.");
-      }
-    });
-  }
+  const { target, setTarget, isPending, confirm } = useDeleteFlow(deletePlayer);
 
   if (players.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-border bg-card p-10 text-center">
-        <p className="mb-1 font-display text-lg font-bold uppercase">No players yet</p>
-        <p className="mb-5 text-sm text-muted-foreground">
-          Add the first one and it appears on the public squad page straight away.
-        </p>
-        <Button asChild variant="lime">
-          <Link href="/admin/players/new">Add player</Link>
-        </Button>
-      </div>
+      <EmptyState
+        title="No players yet"
+        body="Add the first one and it appears on the public squad page straight away."
+        href="/admin/players/new"
+        cta="Add player"
+      />
     );
   }
 
@@ -130,7 +97,7 @@ export function PlayerTable({ players }: { players: Player[] }) {
                       size="icon"
                       aria-label={`Delete ${player.name}`}
                       className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                      onClick={() => setTarget(player)}
+                      onClick={() => setTarget({ id: player.id, name: player.name })}
                     >
                       <Trash2 className="size-4" />
                     </Button>
@@ -142,40 +109,14 @@ export function PlayerTable({ players }: { players: Player[] }) {
         </Table>
       </div>
 
-      <AlertDialog open={target !== null} onOpenChange={(open) => !open && setTarget(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete player?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete <strong>{target?.name}</strong>? Their photo is
-              removed too. This action cannot be undone.
-              <span className="mt-2 block">
-                Goals they scored stay in the match log — match history is never rewritten.
-              </span>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              disabled={isPending}
-              onClick={(event) => {
-                event.preventDefault();
-                confirmDelete();
-              }}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {isPending ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" />
-                  Deleting…
-                </>
-              ) : (
-                "Delete"
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteDialog
+        target={target}
+        onOpenChange={(open) => !open && setTarget(null)}
+        onConfirm={confirm}
+        isPending={isPending}
+        noun="player"
+        extra="Goals they scored stay in the match log — match history is never rewritten."
+      />
     </>
   );
 }
