@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
 
-import { PageHead } from "@/components/layout/page-head";
-import { SponsorStrip } from "@/components/layout/sponsor-strip";
 import { Wrap } from "@/components/layout/wrap";
 import { SquadGroups } from "@/components/players/squad-groups";
 import { getPlayers } from "@/features/players/queries";
-import { getSponsors, getStaff } from "@/features/team/queries";
+import { getStaff } from "@/features/team/queries";
 
 /**
  * Statically rendered and re-generated on demand: the admin actions call
@@ -20,34 +18,20 @@ export const metadata: Metadata = {
 };
 
 export default async function SquadPage() {
-  const [players, staff, sponsors] = await Promise.all([
-    getPlayers(),
-    getStaff(),
-    getSponsors(),
-  ]);
+  const [players, staff] = await Promise.all([getPlayers(), getStaff()]);
 
   return (
-    <>
-      <PageHead
-        eyebrow="The players"
-        title="Squad"
-        description="Every player at the club, by position."
-      />
-
-      <section className="py-12 md:py-17">
-        <Wrap>
-          {players.length === 0 && staff.length === 0 ? (
-            <div className="rounded border border-dashed border-line-strong bg-paper-2 p-8 text-ink-2">
-              <strong className="mb-1.5 block text-ink">No players yet</strong>
-              Add the first one from the admin CMS and it appears here.
-            </div>
-          ) : (
-            <SquadGroups players={players} staff={staff} />
-          )}
-        </Wrap>
-      </section>
-
-      <SponsorStrip sponsors={sponsors} />
-    </>
+    <section className="py-12 md:py-17">
+      <Wrap>
+        {players.length === 0 && staff.length === 0 ? (
+          <div className="rounded border border-dashed border-line-strong bg-paper-2 p-8 text-ink-2">
+            <strong className="mb-1.5 block text-ink">No players yet</strong>
+            Add the first one from the admin CMS and it appears here.
+          </div>
+        ) : (
+          <SquadGroups players={players} staff={staff} />
+        )}
+      </Wrap>
+    </section>
   );
 }
