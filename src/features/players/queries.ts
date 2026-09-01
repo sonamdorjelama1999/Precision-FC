@@ -11,16 +11,14 @@ import type { Player } from "@/types";
  * layer again would touch only this file.
  */
 
-export async function getPlayers(): Promise<Player[]> {
+export async function getPlayers(options?: { teamId?: string }): Promise<Player[]> {
   return prisma.player.findMany({
+    where: options?.teamId ? { teamId: options.teamId } : undefined,
     orderBy: [{ playerNumber: "asc" }, { name: "asc" }],
+    include: { team: true },
   });
 }
 
 export async function getPlayerById(id: string): Promise<Player | null> {
-  return prisma.player.findUnique({ where: { id } });
-}
-
-export async function getPlayerByNumber(playerNumber: number): Promise<Player | null> {
-  return prisma.player.findUnique({ where: { playerNumber } });
+  return prisma.player.findUnique({ where: { id }, include: { team: true } });
 }

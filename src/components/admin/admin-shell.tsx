@@ -1,6 +1,15 @@
 "use client";
 
-import { Handshake, LayoutDashboard, LogOut, Menu, UserCog, Users, X } from "lucide-react";
+import {
+  CalendarDays,
+  LayoutDashboard,
+  LogOut,
+  Mail,
+  Menu,
+  Newspaper,
+  Shield,
+  X,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -10,11 +19,17 @@ import { Button } from "@/components/ui/button";
 import { logout } from "@/features/auth/actions";
 import { cn } from "@/lib/utils";
 
+// Players, Staff and Sponsors deliberately have no entry here — they are
+// managed from inside Team Management now (see TeamCard's "Manage players/
+// staff/sponsors" links), not as their own sidebar tabs. The pages
+// themselves still exist at their old URLs; they're just reached through a
+// team rather than the sidebar.
 const NAV = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true, group: null },
-  { href: "/admin/players", label: "Players", icon: Users, exact: false, group: "Team" },
-  { href: "/admin/staff", label: "Staff", icon: UserCog, exact: false, group: "Team" },
-  { href: "/admin/sponsors", label: "Sponsors", icon: Handshake, exact: false, group: "Team" },
+  { href: "/admin/teams", label: "Teams", icon: Shield, exact: false, group: "Fixtures" },
+  { href: "/admin/matches", label: "Matches", icon: CalendarDays, exact: false, group: "Fixtures" },
+  { href: "/admin/news", label: "News", icon: Newspaper, exact: false, group: "Content" },
+  { href: "/admin/messages", label: "Messages", icon: Mail, exact: false, group: "Content" },
 ];
 
 /**

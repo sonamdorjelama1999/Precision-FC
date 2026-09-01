@@ -1,9 +1,8 @@
-import type { Metadata } from "next";
-
 import { Wrap } from "@/components/layout/wrap";
 import { SquadGroups } from "@/components/players/squad-groups";
 import { getPlayers } from "@/features/players/queries";
 import { getStaff } from "@/features/team/queries";
+import { pageMetadata } from "@/lib/seo";
 
 /**
  * Statically rendered and re-generated on demand: the admin actions call
@@ -12,10 +11,11 @@ import { getStaff } from "@/features/team/queries";
  */
 export const revalidate = 300;
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "Squad",
   description: "The Precision FC squad — every player, by position.",
-};
+  path: "/squad",
+});
 
 export default async function SquadPage() {
   const [players, staff] = await Promise.all([getPlayers(), getStaff()]);

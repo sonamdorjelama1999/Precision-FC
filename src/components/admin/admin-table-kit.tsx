@@ -77,6 +77,7 @@ export function DeleteDialog({
   isPending,
   noun,
   extra,
+  hasImage = true,
 }: {
   target: { name: string } | null;
   onOpenChange: (open: boolean) => void;
@@ -86,6 +87,8 @@ export function DeleteDialog({
   /** Extra context appended below the standard warning — e.g. the player
    * table's note that match history is never rewritten. */
   extra?: React.ReactNode;
+  /** False for entities with no uploaded image, e.g. a match — omits that line. */
+  hasImage?: boolean;
 }) {
   return (
     <AlertDialog open={target !== null} onOpenChange={onOpenChange}>
@@ -93,8 +96,8 @@ export function DeleteDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>Delete {noun}?</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to delete <strong>{target?.name}</strong>? The uploaded image is
-            removed too. This action cannot be undone.
+            Are you sure you want to delete <strong>{target?.name}</strong>?
+            {hasImage ? " The uploaded image is removed too." : ""} This action cannot be undone.
             {extra ? <span className="mt-2 block">{extra}</span> : null}
           </AlertDialogDescription>
         </AlertDialogHeader>

@@ -27,6 +27,14 @@ model Admin {
   email     String   @unique
   password  String // bcrypt hash — never a plaintext password
   role      Role     @default(ADMIN)
+  /// Brute-force lockout, enforced in features/auth/actions.ts: resets to 0
+  /// on a successful login, increments on a failed one. Lives on Admin
+  /// rather than a separate attempts table since there is exactly one thing
+  /// being protected here — this account — not a general-purpose rate limiter.
+  failedAttempts Int       @default(0)
+  /// Set once failedAttempts crosses the threshold; login is refused while
+  /// this is in the future, regardless of whether the password was correct.
+  lockedUntil    DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -48,7 +56,13 @@ enum PlayerPosition {
 
 model Player {
   id           String         @id @default(cuid())
-  playerNumber Int            @unique
+  /// Unique per team, not globally: two different teams can each have their
+  /// own #10 without a collision. A player with no team yet (teamId = null)
+  /// is exempt from the constraint entirely — Postgres treats NULL as
+  /// distinct in a composite unique index — which is fine, since every
+  /// legacy unassigned player is claimed onto the primary team as soon as
+  /// one exists (see claimUnassignedPlayers in features/teams/actions.ts).
+  playerNumber Int
   name         String
   position     PlayerPosition
   /// Public URL served to the browser.
@@ -61,73 +75,27 @@ model Player {
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 
-  goals GoalEvent[]
+  /// Nullable: a player does not have to belong to a team, and every player
+  /// created before Team Management existed has no value here. Deleting a
+  /// team clears this rather than deleting the player (see Team.players).
+  teamId String?
+  team   Team?   @relation(fields: [teamId], references: [id], onDelete: SetNull)
 
+  @@unique([teamId, playerNumber])
   @@index([playerNumber])
+  @@index([teamId])
   @@map("players")
-}
-
-// ---------------------------------------------------------------------------
-// Matches
-// ---------------------------------------------------------------------------
-
-enum MatchStatus {
-  PLAYED
-  UPCOMING
-}
-
-model Fixture {
-  id          String      @id @default(cuid())
-  date        DateTime    @db.Date
-  opponent    String
-  isHome      Boolean     @default(true)
-  status      MatchStatus @default(UPCOMING)
-  /// Free text — "Friendly", "El Clasico", "League".
-  competition String      @default("Friendly")
-  kickoff     String?
-  note        String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-
-  events GoalEvent[]
-
-  @@index([date])
-  @@map("fixtures")
-}
-
-enum GoalTeam {
-  PFC
-  OPPONENT
-}
-
-/// One goal. The scoreline is never stored — it is counted from these rows,
-/// which is what keeps the squad page and the results page in agreement.
-model GoalEvent {
-  id        String   @id @default(cuid())
-  fixtureId String
-  fixture   Fixture  @relation(fields: [fixtureId], references: [id], onDelete: Cascade)
-  team      GoalTeam
-  minute    Int?
-
-  /// Set when the scorer is a current squad member. Preferred over scorerName.
-  playerId String?
-  player   Player? @relation(fields: [playerId], references: [id], onDelete: SetNull)
-
-  /// Free-text fallback: opponents, guests, and historic records with no
-  /// squad row to point at. Deleting a player leaves this intact.
-  scorerName String?
-  assistName String?
-
-  createdAt DateTime @default(now())
-
-  @@index([fixtureId])
-  @@index([playerId])
-  @@map("goal_events")
 }
 
 // ---------------------------------------------------------------------------
 // Team — coaching staff and sponsors
 // ---------------------------------------------------------------------------
+//
+// NOTE ON NAMING: "team" here means coaching staff + sponsors, an existing
+// domain (features/team/*, lib/validations/team.schema.ts, the admin
+// sidebar's "Team" nav group). It predates, and is unrelated to, the football
+// club Team model below. New code for the football-club concept intentionally
+// lives at features/teams/ (plural) to keep the two apart.
 
 /// Manager, head coach, assistant — anyone shown alongside the squad.
 /// A list rather than a single "manager" field, so a second coach or a
@@ -166,4 +134,166 @@ model Sponsor {
 
   @@index([displayOrder])
   @@map("sponsors")
+}
+
+// ---------------------------------------------------------------------------
+// Club teams and matches
+// ---------------------------------------------------------------------------
+//
+// A football/futsal team: Precision FC itself (isPrimary = true, exactly one
+// at a time — enforced in features/teams/actions.ts the same way Player's
+// isCaptain is, not by a database constraint) and every opponent it plays.
+// Players optionally belong to one; matches are always between two.
+
+model Team {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  /// Public URL served to the browser.
+  logoUrl   String?
+  /// Object key inside the storage bucket — what deletes and replaces need.
+  logoPath  String?
+  isPrimary Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  players     Player[]
+  homeMatches Match[]  @relation("HomeTeam")
+  awayMatches Match[]  @relation("AwayTeam")
+
+  @@map("teams")
+}
+
+enum MatchType {
+  FRIENDLY
+  LEAGUE
+  CUP
+  TOURNAMENT
+  OTHER
+}
+
+/// A fixture is just a Match that hasn't been played yet — one entity across
+/// its whole lifecycle rather than separate fixture/result tables, so
+/// scheduling, publishing and result entry are all the same row.
+enum FixtureStatus {
+  SCHEDULED
+  LIVE
+  COMPLETED
+  POSTPONED
+  CANCELLED
+}
+
+model Match {
+  id String @id @default(cuid())
+
+  homeTeamId String
+  awayTeamId String
+  /// Restrict rather than Cascade: a team with matches on it cannot be
+  /// deleted by accident. features/teams/actions.ts checks for this first
+  /// and returns a friendly error rather than letting the query throw.
+  homeTeam   Team   @relation("HomeTeam", fields: [homeTeamId], references: [id], onDelete: Restrict)
+  awayTeam   Team   @relation("AwayTeam", fields: [awayTeamId], references: [id], onDelete: Restrict)
+
+  scheduledAt DateTime
+  venue       String?
+  matchType   MatchType @default(FRIENDLY)
+  /// e.g. "Kathmandu Futsal League", "Precision Cup" — optional, separate
+  /// from matchType so the type stays a fixed set of options.
+  competitionName String?
+
+  status FixtureStatus @default(SCHEDULED)
+
+  /// Only meaningful once status = COMPLETED; enforced in
+  /// features/matches/actions.ts rather than the database, matching how the
+  /// rest of this schema keeps business rules in the action layer.
+  homeScore Int?
+  awayScore Int?
+
+  notes String?
+
+  /// Controls public visibility only — an admin can schedule a match before
+  /// deciding whether it should appear on the website yet.
+  isPublished Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Deliberately no lineup/events/stats yet — see the module comment in
+  // features/matches/queries.ts for how those attach later without
+  // reshaping this model.
+
+  @@index([scheduledAt])
+  @@index([status])
+  @@index([homeTeamId])
+  @@index([awayTeamId])
+  @@map("matches")
+}
+
+// ---------------------------------------------------------------------------
+// News
+// ---------------------------------------------------------------------------
+
+model NewsPost {
+  id String @id @default(cuid())
+
+  /// URL segment — /news/{slug}. Generated from the title but editable in
+  /// the form; unique so two posts never collide on the same public URL.
+  slug String @unique
+  title String
+  /// One or two sentences shown on the /news list and used as the link
+  /// preview description.
+  excerpt String
+  /// Plain text, paragraphs separated by a blank line, rendered as <p> tags
+  /// on the public page. No Markdown or rich-text editor: every other body
+  /// of copy in this app (a staff role, a match's notes) is plain text too,
+  /// and adding an editor library for one field isn't worth the dependency.
+  body String
+
+  /// Public URL served to the browser.
+  coverUrl  String?
+  /// Object key inside the storage bucket — what deletes and replaces need.
+  coverPath String?
+
+  /// Controls public visibility only, same as Match.isPublished — a draft
+  /// can be written and previewed in the admin before it goes live.
+  isPublished Boolean @default(true)
+  /// Defaults to creation time but editable, so a post can be backdated (a
+  /// match report written up two days after the game) without misstating
+  /// when it actually happened.
+  publishedAt DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isPublished, publishedAt])
+  @@map("news_posts")
+}
+
+// ---------------------------------------------------------------------------
+// Contact
+// ---------------------------------------------------------------------------
+
+enum ContactReason {
+  GENERAL
+  SPONSORSHIP
+  MEDIA
+  OTHER
+}
+
+/// One inbox, no threading: a visitor sends a message, an admin reads and
+/// deletes it. There is no reply-from-admin feature — replies happen over
+/// the visitor's own email address, which is why it's captured here.
+model ContactMessage {
+  id      String        @id @default(cuid())
+  name    String
+  email   String
+  reason  ContactReason @default(GENERAL)
+  message String
+
+  /// Toggled from the admin inbox; controls nothing except the unread badge.
+  isRead Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([isRead, createdAt])
+  @@map("contact_messages")
 }

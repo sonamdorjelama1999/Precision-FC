@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { PlayerForm } from "@/components/admin/player-form";
 import { getPlayerById } from "@/features/players/queries";
+import { getTeamOptions } from "@/features/teams/queries";
 
 export const metadata: Metadata = { title: "Edit player" };
 
@@ -12,7 +13,7 @@ export default async function EditPlayerPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const player = await getPlayerById(id);
+  const [player, teams] = await Promise.all([getPlayerById(id), getTeamOptions()]);
 
   if (!player) notFound();
 
@@ -28,7 +29,7 @@ export default async function EditPlayerPage({
         </p>
       </header>
 
-      <PlayerForm player={player} />
+      <PlayerForm player={player} teams={teams} />
     </div>
   );
 }

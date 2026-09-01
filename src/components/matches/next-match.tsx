@@ -1,8 +1,14 @@
-import { CLUB } from "@/data/club";
-import { formatDate, formatDay } from "@/lib/format";
-import type { ScoredFixture } from "@/types";
+import { TeamLogo } from "@/components/admin/team-logo";
+import { formatDate, formatDay, formatTime } from "@/lib/format";
+import { MATCH_TYPE_LABEL, type Match } from "@/types";
 
-export function NextMatch({ fixture }: { fixture: ScoredFixture | null }) {
+/**
+ * The hero of the public Fixtures page: the soonest published, not-yet-played
+ * match. Rebuilt against the real Team/Match model — the previous version
+ * read the legacy free-text-opponent Fixture model, which is no longer shown
+ * on the public site (see the comment on Fixture in prisma/schema.prisma).
+ */
+export function NextMatch({ match }: { match: Match | null }) {
   return (
     <div className="rounded border border-white/10 border-l-4 border-l-lime bg-navy-800 p-7 text-white">
       <p className="mb-3.5 flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-[0.18em] text-teal">
@@ -10,20 +16,25 @@ export function NextMatch({ fixture }: { fixture: ScoredFixture | null }) {
         Next fixture
       </p>
 
-      {fixture ? (
+      {match ? (
         <>
-          <div className="my-3.5 flex flex-wrap items-center gap-[18px]">
-            <strong className="font-display text-[clamp(22px,3.2vw,32px)] font-black uppercase tracking-[-0.02em]">
-              {CLUB.short} v {fixture.opponent}
-            </strong>
+          <div className="my-3.5 flex flex-wrap items-center gap-4">
+            <div className="flex flex-wrap items-center gap-3 font-display text-[clamp(18px,2.4vw,26px)] font-black uppercase tracking-[-0.02em]">
+              <TeamLogo team={match.homeTeam} size={34} />
+              <span className="text-white/40">v</span>
+              <TeamLogo team={match.awayTeam} size={34} />
+            </div>
             <em className="font-mono text-xs not-italic tracking-[0.18em] text-teal">
-              {fixture.competition}
+              {match.competitionName ?? MATCH_TYPE_LABEL[match.matchType]}
             </em>
           </div>
           <dl className="flex flex-wrap gap-[22px]">
-            <Item label="Date" value={`${formatDay(fixture.date)} ${formatDate(fixture.date)}`} />
-            {fixture.kickoff ? <Item label="Kick-off" value={fixture.kickoff} /> : null}
-            <Item label="Venue" value={fixture.isHome ? CLUB.ground : "Away"} />
+            <Item
+              label="Date"
+              value={`${formatDay(match.scheduledAt)} ${formatDate(match.scheduledAt)}`}
+            />
+            <Item label="Kick-off" value={formatTime(match.scheduledAt)} />
+            {match.venue ? <Item label="Venue" value={match.venue} /> : null}
           </dl>
         </>
       ) : (

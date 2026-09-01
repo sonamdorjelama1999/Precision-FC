@@ -17,6 +17,7 @@ export const CLUB: ClubInfo = {
   blurb:
     "Precision FC is a futsal side out of Kathmandu, playing its home games at Rumble Futsal. " +
     "The club plays one way: forward.",
+  email: "hello@precisionfc.club",
 };
 
 export const STORY: StoryBlock[] = [

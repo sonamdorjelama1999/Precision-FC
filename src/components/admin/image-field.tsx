@@ -10,7 +10,8 @@ import { initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 /**
- * The upload control shared by the player, staff and sponsor forms.
+ * The upload control shared by the player, staff, sponsor, team and news
+ * forms.
  *
  * Validates the file in the browser before it is ever sent, shows a preview
  * from an object URL, and hands the parent the File plus a "remove existing"
@@ -32,6 +33,7 @@ export function ImageField({
   onErrorChange,
   onChange,
   aspect = "portrait",
+  emptyLabel = "No logo",
 }: {
   label: string;
   hint: string;
@@ -43,6 +45,8 @@ export function ImageField({
   onErrorChange: (message: string | null) => void;
   onChange: (state: ImageFieldState) => void;
   aspect?: "portrait" | "logo";
+  /** Placeholder text shown when aspect="logo" and nothing has been uploaded yet. */
+  emptyLabel?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(existingUrl);
@@ -109,7 +113,7 @@ export function ImageField({
               aspect === "portrait" ? "text-6xl text-white/15" : "text-2xl text-muted-foreground",
             )}
           >
-            {aspect === "portrait" ? (initials(fallbackText || "?") || "?") : "No logo"}
+            {aspect === "portrait" ? initials(fallbackText || "?") || "?" : emptyLabel}
           </span>
         )}
       </div>

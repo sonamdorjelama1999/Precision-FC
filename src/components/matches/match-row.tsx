@@ -1,137 +1,61 @@
-"use client";
-
-import { useState } from "react";
-
-import { CLUB } from "@/data/club";
-import { formatDate, formatDay } from "@/lib/format";
-import { cn } from "@/lib/utils";
-import type { ScoredFixture } from "@/types";
+import { TeamLogo } from "@/components/admin/team-logo";
+import { formatDate, formatDay, formatTime } from "@/lib/format";
+import { FIXTURE_STATUS_LABEL, MATCH_TYPE_LABEL, type Match } from "@/types";
 
 /**
- * One result row, expanding to the goal timeline. Client component for the
- * disclosure state only — everything it renders comes in as props.
+ * One fixture or result row on the public Fixtures page — a Match is a
+ * fixture and a result at different points of the same lifecycle (see the
+ * model comment in prisma/schema.prisma), so this one row covers both.
+ *
+ * No expand/collapse here, unlike the old per-goal timeline row: Match has
+ * no goal-event log of its own (that stayed on the legacy Fixture model),
+ * so there's nothing further to reveal.
  */
-export function MatchRow({ fixture }: { fixture: ScoredFixture }) {
-  const [open, setOpen] = useState(false);
+export function MatchRow({ match }: { match: Match }) {
+  const hasScore =
+    match.status === "COMPLETED" && match.homeScore != null && match.awayScore != null;
 
-  const upcoming = fixture.status === "UPCOMING";
-  const left = fixture.isHome ? CLUB.name : fixture.opponent;
-  const right = fixture.isHome ? fixture.opponent : CLUB.name;
-  const scoreline = fixture.isHome
-    ? `${fixture.goalsFor} – ${fixture.goalsAgainst}`
-    : `${fixture.goalsAgainst} – ${fixture.goalsFor}`;
-
-  const meta = [
-    upcoming ? null : fixture.result === "W" ? "Win" : fixture.result === "D" ? "Draw" : "Loss",
-    fixture.competition,
-    fixture.isHome ? CLUB.ground : "Away",
-  ]
+  const meta = [match.competitionName ?? MATCH_TYPE_LABEL[match.matchType], match.venue]
     .filter(Boolean)
     .join(" · ");
 
-  const events = [...fixture.events].sort((a, b) => (a.minute ?? 0) - (b.minute ?? 0));
-  const expandable = !upcoming;
-
   return (
     <article className="overflow-hidden rounded border border-line bg-paper-2">
-      <button
-        type="button"
-        disabled={!expandable}
-        aria-expanded={expandable ? open : undefined}
-        onClick={() => setOpen((value) => !value)}
-        className={cn(
-          "grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3.5 gap-y-2.5 px-5 py-4 text-left",
-          "[grid-template-areas:'date_chev''teams_score']",
-          "md:grid-cols-[128px_minmax(0,1fr)_auto_auto] md:gap-[18px] md:[grid-template-areas:'date_teams_score_chev']",
-          expandable && "cursor-pointer hover:bg-[#f7f9f9]",
-        )}
+      <div
+        className={[
+          "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3.5 gap-y-2.5 px-5 py-4",
+          "[grid-template-areas:'date_score''teams_teams']",
+          "md:grid-cols-[128px_minmax(0,1fr)_auto] md:gap-[18px] md:[grid-template-areas:'date_teams_score']",
+        ].join(" ")}
       >
         <span className="[grid-area:date] font-mono text-[11px] uppercase leading-[1.5] tracking-[0.1em] text-ink-3">
-          <b className="block font-semibold tracking-[0.06em] text-ink">{formatDate(fixture.date)}</b>
-          {upcoming && fixture.kickoff ? `Kick-off ${fixture.kickoff}` : formatDay(fixture.date)}
+          <b className="block font-semibold tracking-[0.06em] text-ink">
+            {formatDate(match.scheduledAt)}
+          </b>
+          {hasScore ? formatDay(match.scheduledAt) : `Kick-off ${formatTime(match.scheduledAt)}`}
         </span>
 
-        <span className="[grid-area:teams] font-display text-[17px] font-bold tracking-[-0.01em]">
-          {left} <span className="font-normal text-ink-3">v</span> {right}
-          <small className="mt-1 block font-mono text-[10.5px] font-normal uppercase tracking-[0.13em] text-ink-3">
-            {meta}
-          </small>
+        <span className="[grid-area:teams] flex flex-wrap items-center gap-2.5">
+          <TeamLogo team={match.homeTeam} size={24} className="font-display text-[15px]" />
+          <span className="text-sm text-ink-3">v</span>
+          <TeamLogo team={match.awayTeam} size={24} className="font-display text-[15px]" />
+          {meta ? (
+            <small className="w-full font-mono text-[10.5px] font-normal uppercase tracking-[0.13em] text-ink-3">
+              {meta}
+            </small>
+          ) : null}
         </span>
 
-        {upcoming ? (
-          <span className="[grid-area:score] justify-self-end self-center rounded-[3px] border border-dashed border-line-strong px-3.5 py-[9px] font-mono text-xs uppercase tracking-[0.14em] text-ink-3">
-            Upcoming
+        {hasScore ? (
+          <span className="[grid-area:score] justify-self-end self-center rounded-[3px] bg-navy-800 px-3.5 py-1.5 font-mono text-[22px] font-semibold tracking-[-0.02em] whitespace-nowrap tabular-nums text-white">
+            {match.homeScore} – {match.awayScore}
           </span>
         ) : (
-          <span className="[grid-area:score] justify-self-end self-center rounded-[3px] bg-navy-800 px-3.5 py-1.5 font-mono text-[22px] font-semibold tracking-[-0.02em] whitespace-nowrap tabular-nums text-white">
-            {scoreline}
+          <span className="[grid-area:score] justify-self-end self-center rounded-[3px] border border-dashed border-line-strong px-3.5 py-[9px] font-mono text-xs uppercase tracking-[0.14em] text-ink-3">
+            {FIXTURE_STATUS_LABEL[match.status]}
           </span>
         )}
-
-        <span
-          aria-hidden
-          className={cn(
-            "[grid-area:chev] justify-self-end self-start text-[13px] text-ink-3 transition-transform md:self-center",
-            open && "rotate-180",
-          )}
-        >
-          {expandable ? "▼" : ""}
-        </span>
-      </button>
-
-      {expandable && open ? (
-        <div className="border-t border-line bg-[#fbfcfc] p-5">
-          {fixture.note ? (
-            <p className="mb-3.5 text-[14.5px] text-ink-2">{fixture.note}</p>
-          ) : null}
-          <ul>
-            {events.length === 0 ? (
-              <TimelineRow minute={null} isClub={false}>
-                <em>No goal detail recorded for this match.</em>
-              </TimelineRow>
-            ) : (
-              events.map((event) => (
-                <TimelineRow key={event.id} minute={event.minute} isClub={event.team === "PFC"}>
-                  <span className="font-semibold">
-                    {event.scorerName ?? <em className="font-normal">Scorer not recorded</em>}
-                  </span>{" "}
-                  <small className="font-normal text-ink-3">
-                    — {event.team === "PFC" ? CLUB.short : fixture.opponent}
-                  </small>
-                  {event.assistName ? (
-                    <small className="font-normal text-ink-3"> assist {event.assistName}</small>
-                  ) : null}
-                </TimelineRow>
-              ))
-            )}
-          </ul>
-        </div>
-      ) : null}
+      </div>
     </article>
-  );
-}
-
-function TimelineRow({
-  minute,
-  isClub,
-  children,
-}: {
-  minute: number | null;
-  isClub: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <li className="grid grid-cols-[56px_12px_minmax(0,1fr)] items-baseline gap-3 border-b border-dashed border-line py-[7px] last:border-b-0">
-      <span className="font-mono text-xs tabular-nums text-ink-3">
-        {minute !== null ? `${minute}′` : "—"}
-      </span>
-      <span
-        className={cn(
-          "size-2 self-center rounded-full",
-          isClub ? "bg-teal" : "bg-line-strong",
-        )}
-      />
-      <span className="text-[14.5px]">{children}</span>
-    </li>
   );
 }

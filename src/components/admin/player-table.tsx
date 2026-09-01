@@ -43,6 +43,7 @@ export function PlayerTable({ players }: { players: Player[] }) {
               <TableHead className="w-20">Player #</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Position</TableHead>
+              <TableHead className="hidden md:table-cell">Team</TableHead>
               <TableHead className="hidden md:table-cell">Created</TableHead>
               <TableHead className="w-28 text-right">Actions</TableHead>
             </TableRow>
@@ -81,6 +82,13 @@ export function PlayerTable({ players }: { players: Player[] }) {
                 </TableCell>
                 <TableCell className="text-muted-foreground">
                   {POSITION_LABEL[player.position]}
+                </TableCell>
+                <TableCell className="hidden md:table-cell">
+                  {player.team ? (
+                    <Badge variant="outline">{player.team.name}</Badge>
+                  ) : (
+                    <span className="text-sm text-muted-foreground">—</span>
+                  )}
                 </TableCell>
                 <TableCell className="hidden font-mono text-xs text-muted-foreground md:table-cell">
                   {formatShortDate(player.createdAt)}

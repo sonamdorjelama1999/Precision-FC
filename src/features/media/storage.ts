@@ -4,7 +4,7 @@ import { STORAGE_BUCKET, supabaseAdmin } from "@/lib/supabase/server";
 import { extensionFor } from "@/lib/validations/image";
 
 /**
- * Image storage, shared by players, staff and sponsors.
+ * Image storage, shared by players, staff, sponsors, teams and news posts.
  *
  * Objects live at {folder}/{ownerId}/{uuid}.{ext}. The random filename means
  * a replacement never collides with a cached copy of the old one, and the
@@ -14,7 +14,7 @@ import { extensionFor } from "@/lib/validations/image";
  * deleting) — never the image bytes.
  */
 
-export type MediaFolder = "players" | "staff" | "sponsors";
+export type MediaFolder = "players" | "staff" | "sponsors" | "teams" | "news";
 
 export interface StoredImage {
   url: string;

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Archivo, IBM_Plex_Mono, Inter } from "next/font/google";
 
 import { Toaster } from "@/components/ui/sonner";
+import { SITE_URL } from "@/lib/site";
 
 import "./globals.css";
 
@@ -25,14 +26,31 @@ const plexMono = IBM_Plex_Mono({
   display: "swap",
 });
 
+const DEFAULT_DESCRIPTION =
+  "Precision FC — futsal club founded in 2019, playing out of Rumble Futsal in Kathmandu.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Precision FC — Futsal Club, Kathmandu",
     template: "%s — Precision FC",
   },
-  description:
-    "Precision FC — futsal club founded in 2019, playing out of Rumble Futsal in Kathmandu.",
+  description: DEFAULT_DESCRIPTION,
   icons: { icon: "/favicon.png" },
+  openGraph: {
+    type: "website",
+    siteName: "Precision FC",
+    title: "Precision FC — Futsal Club, Kathmandu",
+    description: DEFAULT_DESCRIPTION,
+    url: SITE_URL,
+    images: [{ url: "/crest.png" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Precision FC — Futsal Club, Kathmandu",
+    description: DEFAULT_DESCRIPTION,
+    images: ["/crest.png"],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

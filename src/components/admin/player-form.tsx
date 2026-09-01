@@ -27,7 +27,7 @@ import {
   playerFormSchema,
   type PlayerFormValues,
 } from "@/lib/validations/player.schema";
-import { PLAYER_POSITIONS, POSITION_LABEL, type Player } from "@/types";
+import { PLAYER_POSITIONS, POSITION_LABEL, type Player, type Team } from "@/types";
 
 /**
  * One form for create and edit.
@@ -41,7 +41,17 @@ import { PLAYER_POSITIONS, POSITION_LABEL, type Player } from "@/types";
  * this form predates that extraction, which is why it used to carry its own
  * copy of the upload markup.
  */
-export function PlayerForm({ player }: { player?: Player }) {
+export function PlayerForm({
+  player,
+  teams,
+  defaultTeamId,
+}: {
+  player?: Player;
+  /** Team options for the select — pass [] when Team Management has none yet. */
+  teams: Pick<Team, "id" | "name" | "isPrimary">[];
+  /** Preselects a team when arriving from that team's "Manage players" link. */
+  defaultTeamId?: string;
+}) {
   const router = useRouter();
   const isEdit = Boolean(player);
 
@@ -63,12 +73,14 @@ export function PlayerForm({ player }: { player?: Player }) {
       position: player?.position ?? "PIVOT",
       role: player?.role ?? "",
       isCaptain: player?.isCaptain ?? false,
+      teamId: player?.teamId ?? defaultTeamId ?? "",
     },
   });
 
   const position = watch("position");
   const name = watch("name");
   const isCaptain = watch("isCaptain");
+  const teamId = watch("teamId");
 
   async function onSubmit(values: PlayerFormValues) {
     const formData = new FormData();
@@ -77,6 +89,7 @@ export function PlayerForm({ player }: { player?: Player }) {
     formData.set("position", values.position);
     formData.set("role", values.role);
     formData.set("isCaptain", values.isCaptain ? "true" : "false");
+    formData.set("teamId", values.teamId);
     if (photo.file) formData.set("photo", photo.file);
     if (photo.remove) formData.set("removePhoto", "true");
 
@@ -181,6 +194,33 @@ export function PlayerForm({ player }: { player?: Player }) {
             </Label>
             <Input id="role" placeholder="e.g. Club top scorer" {...register("role")} />
             {errors.role ? <p className="text-sm text-destructive">{errors.role.message}</p> : null}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="teamId">
+              Team <span className="text-muted-foreground">(optional)</span>
+            </Label>
+            <Select
+              value={teamId || "none"}
+              onValueChange={(value) => setValue("teamId", value === "none" ? "" : value)}
+            >
+              <SelectTrigger id="teamId">
+                <SelectValue placeholder="No team" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">No team</SelectItem>
+                {teams.map((team) => (
+                  <SelectItem key={team.id} value={team.id}>
+                    {team.name}
+                    {team.isPrimary ? " (primary)" : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <input type="hidden" {...register("teamId")} />
+            <p className="text-xs text-muted-foreground">
+              Manage the list of teams from Team Management.
+            </p>
           </div>
 
           <label className="flex items-start gap-3 rounded-md border border-border bg-card p-4">

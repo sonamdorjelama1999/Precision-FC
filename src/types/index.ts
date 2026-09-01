@@ -1,9 +1,10 @@
 /**
- * Domain types for the public site.
- *
- * These deliberately mirror what Prisma will generate in Phase 2, so the
- * components written in Phase 1 keep compiling unchanged once the data
- * starts coming from PostgreSQL. Only the query layer swaps out.
+ * Domain types shared by every layer above the database: components, Server
+ * Actions, and each feature's queries.ts. They mirror what Prisma generates
+ * rather than importing its types directly, so a component never has to know
+ * whether a field came from the database or was composed on the way there
+ * (see e.g. Team.playerCount, added by a query's `_count` rather than living
+ * in the table).
  */
 
 export const PLAYER_POSITIONS = [
@@ -37,72 +38,10 @@ export interface Player {
   isCaptain: boolean;
   createdAt: Date;
   updatedAt: Date;
-}
-
-/**
- * Match types. The Fixture and GoalEvent tables still exist in the database,
- * but no public page reads them right now — the fixtures section was removed
- * from the site. Kept so the match log can come back without a migration.
- */
-export type MatchStatus = "PLAYED" | "UPCOMING";
-export type GoalTeam = "PFC" | "OPPONENT";
-
-export interface GoalEvent {
-  id: string;
-  team: GoalTeam;
-  minute: number | null;
-  /** Free-text scorer. Kept for opponents and for goals with no squad link. */
-  scorerName: string | null;
-  assistName: string | null;
-  /** Set when the scorer is a squad member. */
-  playerId: string | null;
-}
-
-export interface Fixture {
-  id: string;
-  date: Date;
-  opponent: string;
-  isHome: boolean;
-  status: MatchStatus;
-  competition: string;
-  kickoff: string | null;
-  note: string | null;
-  events: GoalEvent[];
-}
-
-/** A fixture with its scoreline worked out. */
-export interface ScoredFixture extends Fixture {
-  goalsFor: number;
-  goalsAgainst: number;
-  result: "W" | "D" | "L" | null;
-}
-
-export interface SeasonTotals {
-  played: number;
-  won: number;
-  drawn: number;
-  lost: number;
-  goalsFor: number;
-  goalsAgainst: number;
-  goalDifference: number;
-  cleanSheets: number;
-  winPct: number;
-}
-
-export interface ScorerRow {
-  name: string;
-  goals: number;
-  assists: number;
-}
-
-export interface OpponentRow {
-  name: string;
-  played: number;
-  won: number;
-  drawn: number;
-  lost: number;
-  goalsFor: number;
-  goalsAgainst: number;
+  /** Nullable — a player does not have to belong to a team. */
+  teamId: string | null;
+  /** Only present when the query explicitly includes it. */
+  team?: Team | null;
 }
 
 export interface ClubInfo {
@@ -114,6 +53,8 @@ export interface ClubInfo {
   sport: string;
   rival: string;
   blurb: string;
+  /** Shown on /contact and used as the mailto: target. */
+  email: string;
 }
 
 export interface StoryBlock {
@@ -178,3 +119,117 @@ export const POSITION_GROUP_LABEL: Record<PlayerPosition, string> = {
   PIVOT: "Pivots",
   FORWARD: "Forwards",
 };
+
+// ---------------------------------------------------------------------------
+// Club teams and matches
+// ---------------------------------------------------------------------------
+//
+// "Team" here is the football/futsal club entity (Precision FC and its
+// opponents) — a different domain from the StaffMember/Sponsor "team" above.
+// See the naming note in prisma/schema.prisma.
+
+export interface Team {
+  id: string;
+  name: string;
+  logoUrl: string | null;
+  logoPath: string | null;
+  isPrimary: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  /** Only present when the query explicitly includes it. */
+  playerCount?: number;
+}
+
+export const MATCH_TYPES = ["FRIENDLY", "LEAGUE", "CUP", "TOURNAMENT", "OTHER"] as const;
+export type MatchType = (typeof MATCH_TYPES)[number];
+
+export const MATCH_TYPE_LABEL: Record<MatchType, string> = {
+  FRIENDLY: "Friendly",
+  LEAGUE: "League",
+  CUP: "Cup",
+  TOURNAMENT: "Tournament",
+  OTHER: "Other",
+};
+
+/**
+ * Named FixtureStatus (not MatchStatus) only because MatchStatus already
+ * names the legacy Fixture model's two-value status above.
+ */
+export const FIXTURE_STATUSES = [
+  "SCHEDULED",
+  "LIVE",
+  "COMPLETED",
+  "POSTPONED",
+  "CANCELLED",
+] as const;
+export type FixtureStatus = (typeof FIXTURE_STATUSES)[number];
+
+export const FIXTURE_STATUS_LABEL: Record<FixtureStatus, string> = {
+  SCHEDULED: "Scheduled",
+  LIVE: "Live",
+  COMPLETED: "Completed",
+  POSTPONED: "Postponed",
+  CANCELLED: "Cancelled",
+};
+
+export interface Match {
+  id: string;
+  homeTeamId: string;
+  awayTeamId: string;
+  homeTeam: Team;
+  awayTeam: Team;
+  scheduledAt: Date;
+  venue: string | null;
+  matchType: MatchType;
+  competitionName: string | null;
+  status: FixtureStatus;
+  homeScore: number | null;
+  awayScore: number | null;
+  notes: string | null;
+  isPublished: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// ---------------------------------------------------------------------------
+// News
+// ---------------------------------------------------------------------------
+
+export interface NewsPost {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  /** Plain text; paragraphs are separated by a blank line. */
+  body: string;
+  coverUrl: string | null;
+  coverPath: string | null;
+  isPublished: boolean;
+  publishedAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// ---------------------------------------------------------------------------
+// Contact
+// ---------------------------------------------------------------------------
+
+export const CONTACT_REASONS = ["GENERAL", "SPONSORSHIP", "MEDIA", "OTHER"] as const;
+export type ContactReason = (typeof CONTACT_REASONS)[number];
+
+export const CONTACT_REASON_LABEL: Record<ContactReason, string> = {
+  GENERAL: "General enquiry",
+  SPONSORSHIP: "Sponsorship",
+  MEDIA: "Media",
+  OTHER: "Other",
+};
+
+export interface ContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  reason: ContactReason;
+  message: string;
+  isRead: boolean;
+  createdAt: Date;
+}

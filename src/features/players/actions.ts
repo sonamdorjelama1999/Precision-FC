@@ -49,6 +49,7 @@ function parsePlayerForm(formData: FormData) {
     position: formData.get("position"),
     role: formData.get("role") ?? undefined,
     isCaptain: formData.get("isCaptain") === "on" || formData.get("isCaptain") === "true",
+    teamId: formData.get("teamId") ?? "",
   });
 }
 
@@ -65,11 +66,11 @@ function parsePhoto(formData: FormData) {
 }
 
 function duplicateNumberResult(playerNumber: number): ActionResult {
-  return {
-    ok: false,
-    message: `Shirt number ${playerNumber} is already taken.`,
-    fieldErrors: { playerNumber: `Shirt number ${playerNumber} is already taken.` },
-  };
+  // Shirt numbers are unique per team (see prisma/schema.prisma), so this
+  // only fires when another player on the *same* team already has it —
+  // the same number is fine on a different team.
+  const message = `Shirt number ${playerNumber} is already taken on this team.`;
+  return { ok: false, message, fieldErrors: { playerNumber: message } };
 }
 
 /**

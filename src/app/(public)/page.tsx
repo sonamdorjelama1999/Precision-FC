@@ -1,29 +1,37 @@
+import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
 import { FeaturePosters } from "@/components/home/feature-poster";
 import { Wrap } from "@/components/layout/wrap";
+import { NextMatch } from "@/components/matches/next-match";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { CLUB } from "@/data/club";
+import { getPublicNextMatch } from "@/features/matches/queries";
+import { getLatestPublicNews } from "@/features/news/queries";
+import { formatDate } from "@/lib/format";
 
 /**
- * The home page: the hero, then one feature panel. Nothing else.
+ * The home page: hero, then a live "matchday" strip (next fixture + latest
+ * news), then the feature panels.
  *
- * It reads no player or fixture data, so it is fully static — no database
- * round-trip, and nothing to revalidate.
+ * This is now an async server component reading real data — the previous
+ * version was fully static because nothing on it needed the database. Both
+ * new reads are cheap, cached queries with their own revalidatePath calls
+ * from the admin side, so this stays fast without an explicit revalidate
+ * window of its own.
  */
-export default function HomePage() {
+export default async function HomePage() {
+  const [nextMatch, latestNews] = await Promise.all([
+    getPublicNextMatch(),
+    getLatestPublicNews(3),
+  ]);
+
   return (
     <>
       <section className="relative overflow-hidden bg-navy-900 pt-14 pb-13 text-white md:pt-[84px] md:pb-[76px]">
-        <div
-          className="pfc-hero-glow pointer-events-none absolute inset-0"
-          aria-hidden
-        />
-        <div
-          className="pfc-hero-grid pointer-events-none absolute inset-0"
-          aria-hidden
-        />
+        <div className="pfc-hero-glow pointer-events-none absolute inset-0" aria-hidden />
+        <div className="pfc-hero-grid pointer-events-none absolute inset-0" aria-hidden />
 
         <Wrap className="relative z-10">
           <div className="grid grid-cols-[minmax(0,1fr)] items-center gap-9 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)] lg:gap-12">
@@ -73,6 +81,65 @@ export default function HomePage() {
         </Wrap>
       </section>
 
+      <section className="bg-paper-2 py-12 md:py-16">
+        <Wrap>
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] lg:gap-8">
+            <NextMatch match={nextMatch} />
+
+            <div>
+              <div className="mb-4 flex items-center justify-between">
+                <Eyebrow>Latest news</Eyebrow>
+                <Link
+                  href="/news"
+                  className="inline-flex items-center gap-1.5 font-display text-[13px] font-bold uppercase tracking-[0.06em] text-teal-dark hover:text-ink"
+                >
+                  All news
+                  <ArrowRight className="size-3.5" />
+                </Link>
+              </div>
+
+              {latestNews.length === 0 ? (
+                <div className="rounded-card border border-dashed border-line bg-card p-7 text-center text-muted-foreground">
+                  No news posted yet — check back soon.
+                </div>
+              ) : (
+                <div className="grid gap-3">
+                  {latestNews.map((post) => (
+                    <Link
+                      key={post.id}
+                      href={`/news/${post.slug}`}
+                      className="group flex items-center gap-4 rounded-card border border-line bg-card p-4 transition-colors hover:border-teal-dark/40"
+                    >
+                      <div className="relative size-14 shrink-0 overflow-hidden rounded-md bg-navy-900">
+                        {post.coverUrl ? (
+                          <Image
+                            src={post.coverUrl}
+                            alt=""
+                            fill
+                            sizes="56px"
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="pfc-page-glow absolute inset-0" aria-hidden />
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-teal-dark">
+                          {formatDate(post.publishedAt)}
+                        </p>
+                        <p className="truncate font-display text-sm font-bold uppercase tracking-[-0.01em] group-hover:underline">
+                          {post.title}
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </Wrap>
+      </section>
+
       <FeaturePosters />
     </>
   );
@@ -84,9 +151,7 @@ function HeroFact({ label, value }: { label: string; value: string }) {
       <dt className="mb-1.5 font-mono text-[10.5px] uppercase tracking-[0.16em] text-teal">
         {label}
       </dt>
-      <dd className="font-display text-[18px] font-bold tracking-[-0.01em]">
-        {value}
-      </dd>
+      <dd className="font-display text-[18px] font-bold tracking-[-0.01em]">{value}</dd>
     </div>
   );
 }

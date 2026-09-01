@@ -1,17 +1,18 @@
-import type { Metadata } from "next";
 import Image from "next/image";
 
 import { PageHead } from "@/components/layout/page-head";
 import { Wrap } from "@/components/layout/wrap";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { CLUB, STORY } from "@/data/club";
+import { pageMetadata } from "@/lib/seo";
 
 export const revalidate = 300;
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "The Club",
   description: `The story of Precision FC: founded ${CLUB.founded}, based at ${CLUB.ground} in Kathmandu, and the rivalry with ${CLUB.rival}.`,
-};
+  path: "/about",
+});
 
 export default function AboutPage() {
   const facts: Array<[string, string]> = [

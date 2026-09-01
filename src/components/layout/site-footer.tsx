@@ -6,7 +6,11 @@ import { CLUB } from "@/data/club";
 const PAGES = [
   { href: "/", label: "Home" },
   { href: "/squad", label: "Squad" },
+  { href: "/fixtures", label: "Fixtures" },
+  { href: "/news", label: "News" },
+  { href: "/sponsors", label: "Sponsors" },
   { href: "/about", label: "The club" },
+  { href: "/contact", label: "Contact" },
 ];
 
 export function SiteFooter() {
@@ -37,6 +41,14 @@ export function SiteFooter() {
             <ul>
               <li className="mb-2">{CLUB.ground}</li>
               <li className="mb-2">{CLUB.city}</li>
+              <li className="mb-2">
+                <a
+                  href={`mailto:${CLUB.email}`}
+                  className="text-white/70 transition-colors hover:text-lime"
+                >
+                  {CLUB.email}
+                </a>
+              </li>
             </ul>
           </div>
         </div>

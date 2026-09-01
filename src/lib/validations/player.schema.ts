@@ -28,6 +28,10 @@ const MESSAGES = {
  * Deliberately free of transforms: RHF requires a resolver whose input and
  * output types match, and a schema that turns "" into null does not satisfy
  * that. The server schema below adds the coercion instead.
+ *
+ * teamId is a plain string here — "" means "no team" — because Radix Select
+ * (like the position field) has no empty/null value of its own; the server
+ * schema turns "" into null, same as sponsor's websiteUrl.
  */
 export const playerFormSchema = z.object({
   playerNumber: z
@@ -39,6 +43,7 @@ export const playerFormSchema = z.object({
   position: z.enum(PLAYER_POSITIONS, { message: MESSAGES.positionRequired }),
   role: z.string().trim().max(60, MESSAGES.roleMax),
   isCaptain: z.boolean(),
+  teamId: z.string(),
 });
 
 export type PlayerFormValues = z.infer<typeof playerFormSchema>;
@@ -46,9 +51,9 @@ export type PlayerFormValues = z.infer<typeof playerFormSchema>;
 /**
  * Server schema — what the Server Action validates.
  *
- * FormData only ever carries strings, so the number is coerced here, and an
- * empty role becomes null rather than "". Same rules, same messages; a
- * crafted request that skips the browser hits exactly the same wall.
+ * FormData only ever carries strings, so the number is coerced here, an
+ * empty role becomes null rather than "", and an empty teamId ("no team")
+ * becomes null rather than "".
  */
 export const playerServerSchema = playerFormSchema.extend({
   playerNumber: z.coerce
@@ -61,6 +66,7 @@ export const playerServerSchema = playerFormSchema.extend({
     .trim()
     .max(60, MESSAGES.roleMax)
     .transform((value) => (value.length > 0 ? value : null)),
+  teamId: z.string().transform((value) => (value.length > 0 ? value : null)),
 });
 
 export type PlayerInput = z.infer<typeof playerServerSchema>;

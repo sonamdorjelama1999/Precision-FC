@@ -1,38 +1,12 @@
-import { DataTable, Td, Th } from "@/components/ui/data-table";
-import type { OpponentRow } from "@/types";
-
-export function OpponentTable({ rows }: { rows: OpponentRow[] }) {
-  if (rows.length === 0) {
-    return <p className="text-white/70">No opponents recorded yet.</p>;
-  }
-
-  return (
-    <DataTable
-      onDark
-      head={
-        <tr>
-          <Th onDark>Opponent</Th>
-          {["P", "W", "D", "L", "GF", "GA"].map((label) => (
-            <Th key={label} onDark numeric>
-              {label}
-            </Th>
-          ))}
-        </tr>
-      }
-    >
-      {rows.map((row) => (
-        <tr key={row.name} className="hover:bg-white/5">
-          <Td onDark className="font-semibold">
-            {row.name}
-          </Td>
-          <Td onDark numeric>{row.played}</Td>
-          <Td onDark numeric>{row.won}</Td>
-          <Td onDark numeric>{row.drawn}</Td>
-          <Td onDark numeric>{row.lost}</Td>
-          <Td onDark numeric>{row.goalsFor}</Td>
-          <Td onDark numeric>{row.goalsAgainst}</Td>
-        </tr>
-      ))}
-    </DataTable>
-  );
-}
+/**
+ * TOMBSTONE — safe to delete this file.
+ *
+ * Rendered lib/stats.ts's opponentTable() against the legacy Fixture model,
+ * which no longer exists in prisma/schema.prisma. Nothing has imported this
+ * component since the fixtures section was rebuilt on the Team/Match model.
+ *
+ * Kept as an empty module rather than removed outright because this device
+ * bridge can write file contents but can't delete files — deleting
+ * src/components/matches/opponent-table.tsx by hand is the real cleanup.
+ */
+export {};

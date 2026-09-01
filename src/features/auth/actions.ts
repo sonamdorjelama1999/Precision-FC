@@ -13,13 +13,27 @@ export interface ActionResult {
   fieldErrors?: Record<string, string>;
 }
 
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_MINUTES = 15;
+/** Same shape as a real bcrypt hash so a compare against it takes the same time as a real one. */
+const DUMMY_HASH = "$2a$12$invalidinvalidinvalidinvalidinvalidinvalidinvalidinvalidin";
+
 /**
  * Login.
  *
- * The same "Invalid email or password" message is returned whether the email
- * is unknown or the password is wrong — telling them apart would let anyone
- * enumerate which addresses have accounts. A dummy hash comparison runs on the
- * unknown-email path so both cases take the same time.
+ * Two defenses layer on top of each other:
+ *  - The same "Invalid email or password" message comes back whether the
+ *    email is unknown or the password is wrong, and a dummy hash comparison
+ *    runs on the unknown-email path so both cases take the same time —
+ *    telling them apart would let anyone enumerate which addresses have
+ *    accounts.
+ *  - `failedAttempts`/`lockedUntil` on Admin throttle repeated guessing:
+ *    five wrong passwords lock the account for 15 minutes, reset by one
+ *    correct login. This lives on the row being protected rather than a
+ *    general-purpose rate-limit table, since login is the only thing here
+ *    that needs it. Once an account is locked, that state is disclosed (a
+ *    distinct message rather than the generic one) — the alternative is a
+ *    locked-out admin with no idea why their real password stopped working.
  */
 export async function login(input: unknown): Promise<ActionResult> {
   const parsed = loginSchema.safeParse(input);
@@ -38,12 +52,24 @@ export async function login(input: unknown): Promise<ActionResult> {
   try {
     const admin = await prisma.admin.findUnique({ where: { email } });
 
+    if (admin?.lockedUntil && admin.lockedUntil.getTime() > Date.now()) {
+      return { ok: false, message: "Too many failed attempts. Try again in a few minutes." };
+    }
+
     const valid = admin
       ? await verifyPassword(password, admin.password)
-      : await verifyPassword(password, "$2a$12$invalidinvalidinvalidinvalidinvalidinvalidinvalidinvalidin");
+      : await verifyPassword(password, DUMMY_HASH);
 
     if (!admin || !valid) {
+      if (admin) await recordFailedAttempt(admin.id, admin.failedAttempts);
       return { ok: false, message: "Invalid email or password." };
+    }
+
+    if (admin.failedAttempts > 0 || admin.lockedUntil) {
+      await prisma.admin.update({
+        where: { id: admin.id },
+        data: { failedAttempts: 0, lockedUntil: null },
+      });
     }
 
     await createSession(admin);
@@ -52,6 +78,19 @@ export async function login(input: unknown): Promise<ActionResult> {
     console.error("[auth] login failed:", error);
     return { ok: false, message: "Could not sign you in. Please try again." };
   }
+}
+
+async function recordFailedAttempt(adminId: string, attemptsBeforeThis: number) {
+  const attempts = attemptsBeforeThis + 1;
+  await prisma.admin.update({
+    where: { id: adminId },
+    data: {
+      failedAttempts: { increment: 1 },
+      ...(attempts >= MAX_ATTEMPTS
+        ? { lockedUntil: new Date(Date.now() + LOCKOUT_MINUTES * 60_000) }
+        : {}),
+    },
+  });
 }
 
 export async function logout(): Promise<void> {
