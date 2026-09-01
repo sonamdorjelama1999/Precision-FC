@@ -3,27 +3,35 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { Wrap } from "@/components/layout/wrap";
-import { NextMatch } from "@/components/matches/next-match";
+import { HomeFixtures } from "@/components/matches/home-fixtures";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { CLUB } from "@/data/club";
-import { getPublicNextMatch } from "@/features/matches/queries";
+import { getPublicResults, getPublicUpcomingMatches } from "@/features/matches/queries";
 import { getLatestPublicNews } from "@/features/news/queries";
 import { formatDate } from "@/lib/format";
 
 /**
- * The home page: hero, then a live "matchday" strip — next fixture and
- * latest news, each on its own row rather than side-by-side, since a single
+ * The home page: hero, then a dark "fixtures" strip (upcoming + past teaser,
+ * per the reference design) and a separate light "latest news" strip below
+ * it — each its own row/section rather than side-by-side, since a single
  * feature next to a whole news list read as visually mismatched.
  *
- * This is an async server component reading real data — both reads are
+ * This is an async server component reading real data — all three reads are
  * cheap, cached queries with their own revalidatePath calls from the admin
  * side, so this stays fast without an explicit revalidate window of its own.
  */
 export default async function HomePage() {
-  const [nextMatch, latestNews] = await Promise.all([
-    getPublicNextMatch(),
+  const [upcomingMatches, pastMatches, latestNews] = await Promise.all([
+    getPublicUpcomingMatches(),
+    getPublicResults(),
     getLatestPublicNews(3),
   ]);
+
+  // A home-page teaser, not the full /fixtures list: a couple of what's next
+  // plus the most recent result, so the section stays a glance rather than
+  // duplicating the dedicated fixtures page.
+  const upcoming = upcomingMatches.slice(0, 2);
+  const past = pastMatches.slice(0, 1);
 
   return (
     <>
@@ -79,60 +87,73 @@ export default async function HomePage() {
         </Wrap>
       </section>
 
-      <section className="bg-paper-2 py-12 md:py-16">
-        <Wrap className="space-y-10">
-          <NextMatch match={nextMatch} />
-
-          <div>
-            <div className="mb-4 flex items-center justify-between">
-              <Eyebrow>Latest news</Eyebrow>
-              <Link
-                href="/news"
-                className="inline-flex items-center gap-1.5 font-display text-[13px] font-bold uppercase tracking-[0.06em] text-teal-dark hover:text-ink"
-              >
-                All news
-                <ArrowRight className="size-3.5" />
-              </Link>
-            </div>
-
-            {latestNews.length === 0 ? (
-              <div className="rounded-card border border-dashed border-line bg-card p-7 text-center text-muted-foreground">
-                No news posted yet — check back soon.
-              </div>
-            ) : (
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {latestNews.map((post) => (
-                  <Link
-                    key={post.id}
-                    href={`/news/${post.slug}`}
-                    className="group flex items-center gap-4 rounded-card border border-line bg-card p-4 transition-colors hover:border-teal-dark/40"
-                  >
-                    <div className="relative size-14 shrink-0 overflow-hidden rounded-md bg-navy-900">
-                      {post.coverUrl ? (
-                        <Image
-                          src={post.coverUrl}
-                          alt=""
-                          fill
-                          sizes="56px"
-                          className="object-cover"
-                        />
-                      ) : (
-                        <div className="pfc-page-glow absolute inset-0" aria-hidden />
-                      )}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-teal-dark">
-                        {formatDate(post.publishedAt)}
-                      </p>
-                      <p className="truncate font-display text-sm font-bold uppercase tracking-[-0.01em] group-hover:underline">
-                        {post.title}
-                      </p>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
+      <section className="bg-navy-800 py-12 md:py-16">
+        <Wrap>
+          <div className="mb-6 flex items-center justify-between">
+            <Eyebrow onDark>Fixtures</Eyebrow>
+            <Link
+              href="/fixtures"
+              className="inline-flex items-center gap-1.5 font-display text-[13px] font-bold uppercase tracking-[0.06em] text-teal hover:text-lime"
+            >
+              All fixtures
+              <ArrowRight className="size-3.5" />
+            </Link>
           </div>
+
+          <HomeFixtures upcoming={upcoming} past={past} />
+        </Wrap>
+      </section>
+
+      <section className="bg-paper-2 py-12 md:py-16">
+        <Wrap>
+          <div className="mb-4 flex items-center justify-between">
+            <Eyebrow>Latest news</Eyebrow>
+            <Link
+              href="/news"
+              className="inline-flex items-center gap-1.5 font-display text-[13px] font-bold uppercase tracking-[0.06em] text-teal-dark hover:text-ink"
+            >
+              All news
+              <ArrowRight className="size-3.5" />
+            </Link>
+          </div>
+
+          {latestNews.length === 0 ? (
+            <div className="rounded-card border border-dashed border-line bg-card p-7 text-center text-muted-foreground">
+              No news posted yet — check back soon.
+            </div>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {latestNews.map((post) => (
+                <Link
+                  key={post.id}
+                  href={`/news/${post.slug}`}
+                  className="group flex items-center gap-4 rounded-card border border-line bg-card p-4 transition-colors hover:border-teal-dark/40"
+                >
+                  <div className="relative size-14 shrink-0 overflow-hidden rounded-md bg-navy-900">
+                    {post.coverUrl ? (
+                      <Image
+                        src={post.coverUrl}
+                        alt=""
+                        fill
+                        sizes="56px"
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="pfc-page-glow absolute inset-0" aria-hidden />
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-teal-dark">
+                      {formatDate(post.publishedAt)}
+                    </p>
+                    <p className="truncate font-display text-sm font-bold uppercase tracking-[-0.01em] group-hover:underline">
+                      {post.title}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </Wrap>
       </section>
     </>
