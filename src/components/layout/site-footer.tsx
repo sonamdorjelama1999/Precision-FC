@@ -17,7 +17,7 @@ export function SiteFooter() {
           <div>
             <FooterHeading>{CLUB.name}</FooterHeading>
             <p className="mt-3 max-w-[40ch]">
-              A futsal club from Kathmandu, founded in {CLUB.founded}. Built to attack.
+              The futsal club from Kathmandu, founded in {CLUB.founded}. Built to attack.
             </p>
           </div>
           <div>
