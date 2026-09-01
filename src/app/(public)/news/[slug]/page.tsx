@@ -64,8 +64,20 @@ export default async function NewsPostPage({
         <Wrap>
           <div className="mx-auto max-w-[720px]">
             {post.coverUrl ? (
-              <div className="relative mb-8 aspect-[16/9] overflow-hidden rounded-card">
-                <Image src={post.coverUrl} alt="" fill sizes="720px" className="object-cover" />
+              // A fixed-height, letterboxed frame rather than a cropped
+              // aspect ratio: cover photos come from all over (wide match
+              // shots, portrait player photos like a kit-launch picture),
+              // and object-cover was cutting the interesting part off
+              // portrait uploads. object-contain on a navy backdrop shows
+              // the whole photo either way, matching the page's own colour.
+              <div className="relative mb-8 h-[340px] w-full overflow-hidden rounded-card bg-navy-900 sm:h-[440px]">
+                <Image
+                  src={post.coverUrl}
+                  alt=""
+                  fill
+                  sizes="720px"
+                  className="object-contain"
+                />
               </div>
             ) : null}
 

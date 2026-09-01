@@ -2,7 +2,6 @@ import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { FeaturePosters } from "@/components/home/feature-poster";
 import { Wrap } from "@/components/layout/wrap";
 import { NextMatch } from "@/components/matches/next-match";
 import { Eyebrow } from "@/components/ui/eyebrow";
@@ -12,14 +11,13 @@ import { getLatestPublicNews } from "@/features/news/queries";
 import { formatDate } from "@/lib/format";
 
 /**
- * The home page: hero, then a live "matchday" strip (next fixture + latest
- * news), then the feature panels.
+ * The home page: hero, then a live "matchday" strip — next fixture and
+ * latest news, each on its own row rather than side-by-side, since a single
+ * feature next to a whole news list read as visually mismatched.
  *
- * This is now an async server component reading real data — the previous
- * version was fully static because nothing on it needed the database. Both
- * new reads are cheap, cached queries with their own revalidatePath calls
- * from the admin side, so this stays fast without an explicit revalidate
- * window of its own.
+ * This is an async server component reading real data — both reads are
+ * cheap, cached queries with their own revalidatePath calls from the admin
+ * side, so this stays fast without an explicit revalidate window of its own.
  */
 export default async function HomePage() {
   const [nextMatch, latestNews] = await Promise.all([
@@ -82,65 +80,61 @@ export default async function HomePage() {
       </section>
 
       <section className="bg-paper-2 py-12 md:py-16">
-        <Wrap>
-          <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] lg:gap-8">
-            <NextMatch match={nextMatch} />
+        <Wrap className="space-y-10">
+          <NextMatch match={nextMatch} />
 
-            <div>
-              <div className="mb-4 flex items-center justify-between">
-                <Eyebrow>Latest news</Eyebrow>
-                <Link
-                  href="/news"
-                  className="inline-flex items-center gap-1.5 font-display text-[13px] font-bold uppercase tracking-[0.06em] text-teal-dark hover:text-ink"
-                >
-                  All news
-                  <ArrowRight className="size-3.5" />
-                </Link>
-              </div>
-
-              {latestNews.length === 0 ? (
-                <div className="rounded-card border border-dashed border-line bg-card p-7 text-center text-muted-foreground">
-                  No news posted yet — check back soon.
-                </div>
-              ) : (
-                <div className="grid gap-3">
-                  {latestNews.map((post) => (
-                    <Link
-                      key={post.id}
-                      href={`/news/${post.slug}`}
-                      className="group flex items-center gap-4 rounded-card border border-line bg-card p-4 transition-colors hover:border-teal-dark/40"
-                    >
-                      <div className="relative size-14 shrink-0 overflow-hidden rounded-md bg-navy-900">
-                        {post.coverUrl ? (
-                          <Image
-                            src={post.coverUrl}
-                            alt=""
-                            fill
-                            sizes="56px"
-                            className="object-cover"
-                          />
-                        ) : (
-                          <div className="pfc-page-glow absolute inset-0" aria-hidden />
-                        )}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-teal-dark">
-                          {formatDate(post.publishedAt)}
-                        </p>
-                        <p className="truncate font-display text-sm font-bold uppercase tracking-[-0.01em] group-hover:underline">
-                          {post.title}
-                        </p>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              )}
+          <div>
+            <div className="mb-4 flex items-center justify-between">
+              <Eyebrow>Latest news</Eyebrow>
+              <Link
+                href="/news"
+                className="inline-flex items-center gap-1.5 font-display text-[13px] font-bold uppercase tracking-[0.06em] text-teal-dark hover:text-ink"
+              >
+                All news
+                <ArrowRight className="size-3.5" />
+              </Link>
             </div>
+
+            {latestNews.length === 0 ? (
+              <div className="rounded-card border border-dashed border-line bg-card p-7 text-center text-muted-foreground">
+                No news posted yet — check back soon.
+              </div>
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {latestNews.map((post) => (
+                  <Link
+                    key={post.id}
+                    href={`/news/${post.slug}`}
+                    className="group flex items-center gap-4 rounded-card border border-line bg-card p-4 transition-colors hover:border-teal-dark/40"
+                  >
+                    <div className="relative size-14 shrink-0 overflow-hidden rounded-md bg-navy-900">
+                      {post.coverUrl ? (
+                        <Image
+                          src={post.coverUrl}
+                          alt=""
+                          fill
+                          sizes="56px"
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="pfc-page-glow absolute inset-0" aria-hidden />
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-teal-dark">
+                        {formatDate(post.publishedAt)}
+                      </p>
+                      <p className="truncate font-display text-sm font-bold uppercase tracking-[-0.01em] group-hover:underline">
+                        {post.title}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         </Wrap>
       </section>
-
-      <FeaturePosters />
     </>
   );
 }
