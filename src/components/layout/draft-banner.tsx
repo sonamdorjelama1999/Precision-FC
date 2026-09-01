@@ -1,18 +1,12 @@
-import { DRAFT_DATA } from "@/data/club";
-
 /**
- * Carried over from the static site: a loud reminder that the match data is
- * still placeholder. Set DRAFT_DATA to false in src/data/club.ts once the
- * real results are in.
+ * TOMBSTONE — not rendered anywhere; safe to delete this file.
+ *
+ * Carried over from the static site as a loud reminder that match data was
+ * still placeholder. It read a DRAFT_DATA flag from src/data/club.ts that no
+ * longer exists there — the match log left the public site along with the
+ * fixtures section, and this banner was never wired back up. Hardcoded to
+ * null rather than left with a broken import.
  */
 export function DraftBanner() {
-  if (!DRAFT_DATA) return null;
-
-  return (
-    <div role="note" className="bg-lime px-6 py-2.5 text-center text-[13px] font-semibold text-navy-900">
-      <strong>Draft data.</strong> Match dates, scores and goal times are placeholders. Replace them,
-      then set <code className="font-mono text-[0.87em]">DRAFT_DATA</code> to false in{" "}
-      <code className="font-mono text-[0.87em]">src/data/club.ts</code>.
-    </div>
-  );
+  return null;
 }

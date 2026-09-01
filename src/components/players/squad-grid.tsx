@@ -4,21 +4,23 @@ import { useMemo, useState } from "react";
 
 import { PlayerCard } from "@/components/players/player-card";
 import { cn } from "@/lib/utils";
-import { PLAYER_POSITIONS, POSITION_LABEL, type Player, type ScorerRow } from "@/types";
+import { PLAYER_POSITIONS, POSITION_LABEL, type Player } from "@/types";
 
 type Filter = "ALL" | (typeof PLAYER_POSITIONS)[number];
 
 /**
+ * TOMBSTONE — not rendered anywhere; safe to delete this file.
+ *
+ * The filter-chip squad view from before the page was reworked into
+ * SquadGroups (position headings, no client-side filter). Kept compiling
+ * rather than deleted outright, in case the filter layout is ever wanted
+ * back — but SquadGroups is what the live Squad page actually uses.
+ *
  * Client component only because of the position filter. The cards themselves
  * are plain markup — no data fetching happens here, the page passes it in.
  */
-export function SquadGrid({ players, scorers }: { players: Player[]; scorers: ScorerRow[] }) {
+export function SquadGrid({ players }: { players: Player[] }) {
   const [filter, setFilter] = useState<Filter>("ALL");
-
-  const statsByName = useMemo(
-    () => new Map(scorers.map((row) => [row.name, row])),
-    [scorers],
-  );
 
   const visible = players.filter((player) => filter === "ALL" || player.position === filter);
 
@@ -50,13 +52,7 @@ export function SquadGrid({ players, scorers }: { players: Player[]; scorers: Sc
             No players in this position yet.
           </div>
         ) : (
-          visible.map((player) => (
-            <PlayerCard
-              key={player.id}
-              player={player}
-              stats={statsByName.get(player.name) ?? { name: player.name, goals: 0, assists: 0 }}
-            />
-          ))
+          visible.map((player) => <PlayerCard key={player.id} player={player} />)
         )}
       </div>
     </>
